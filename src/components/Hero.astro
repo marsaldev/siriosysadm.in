@@ -1,0 +1,424 @@
+---
+// Replaces Starlight's hero on the home pages: a star chart around Sirius, where the bright star
+// is the server and the constellation is what Sirio manages on it. Headline and tagline come from
+// the page's frontmatter (hero.title/tagline), buttons and the chart's labels from copy.ts.
+import { betaMailto } from '../beta.mjs';
+import { copy, docsUrl, localeOf } from './home/copy';
+
+const route = Astro.locals.starlightRoute;
+const { title, tagline } = route.entry.data.hero ?? {};
+const locale = localeOf(route.lang);
+const hero = copy[locale].hero;
+const t = copy[locale].chart;
+
+// The field stars: fixed, so the chart is the same on every build.
+let seed = 1987;
+const rand = () => {
+	seed = (seed * 1664525 + 1013904223) % 4294967296;
+	return seed / 4294967296;
+};
+const field = Array.from({ length: 170 }, () => ({
+	x: +(rand() * 1200).toFixed(1),
+	y: +(rand() * 660).toFixed(1),
+	r: +(0.4 + rand() ** 3 * 1.6).toFixed(2),
+	o: +(0.25 + rand() * 0.6).toFixed(2),
+}));
+
+// Sirius sits at right ascension 6h 45m, declination −16° 43′. One grid column is a minute of
+// right ascension, which grows to the east: to the left, as on any sky chart.
+const center = { x: 760, y: 250 };
+const ra = Array.from({ length: 10 }, (_, i) => ({ x: 40 + i * 120, label: `6h ${51 - i}m` }));
+const dec = Array.from({ length: 6 }, (_, i) => ({ y: 30 + i * 110, label: `−${14 + i}°` }));
+
+// Domains lose their ".example.com" on narrow screens, where the chart is cropped.
+const nodes: Record<
+	string,
+	{ x: number; y: number; label: string; domain?: boolean; dx: number; dy: number; anchor: string }
+> = {
+	blog: { x: 610, y: 92, label: 'blog', domain: true, dx: -14, dy: -12, anchor: 'end' },
+	push: { x: 400, y: 64, label: 'git push', dx: -14, dy: 5, anchor: 'end' },
+	shop: { x: 958, y: 116, label: 'shop', domain: true, dx: 14, dy: -12, anchor: 'start' },
+	api: { x: 1030, y: 296, label: 'api', domain: true, dx: 14, dy: -12, anchor: 'start' },
+	db: { x: 1112, y: 430, label: 'postgres', dx: -14, dy: 22, anchor: 'end' },
+	backup: { x: 858, y: 452, label: t.backup, dx: -14, dy: 24, anchor: 'end' },
+};
+type Key = 'blog' | 'push' | 'shop' | 'api' | 'db' | 'backup' | 'server';
+const at = (k: Key) => (k === 'server' ? center : nodes[k]);
+const links: { from: Key; to: Key; dashed?: boolean }[] = [
+	{ from: 'server', to: 'blog' },
+	{ from: 'server', to: 'shop' },
+	{ from: 'server', to: 'api' },
+	{ from: 'api', to: 'db' },
+	{ from: 'push', to: 'blog', dashed: true },
+	{ from: 'server', to: 'backup', dashed: true },
+];
+// The four-pointed star of the logo, centred on 0,0.
+const star = 'M0 -40 L7 -9 L40 0 L7 9 L0 40 L-7 9 L-40 0 L-7 -9 Z';
+---
+
+<section class="plate not-content" aria-labelledby="_top">
+	<svg
+		class="chart"
+		viewBox="0 0 1200 660"
+		preserveAspectRatio="xMaxYMid slice"
+		role="img"
+		aria-label={t.label}
+	>
+		<defs>
+			<radialGradient id="halo">
+				<stop offset="0" stop-color="#c9d8ff" stop-opacity="0.55" />
+				<stop offset="0.25" stop-color="#8ea6ff" stop-opacity="0.18" />
+				<stop offset="1" stop-color="#8ea6ff" stop-opacity="0" />
+			</radialGradient>
+			<linearGradient id="spike-h">
+				<stop offset="0" stop-color="#c9d8ff" stop-opacity="0" />
+				<stop offset="0.5" stop-color="#e8eeff" stop-opacity="0.9" />
+				<stop offset="1" stop-color="#c9d8ff" stop-opacity="0" />
+			</linearGradient>
+			<linearGradient id="spike-v" x1="0" y1="0" x2="0" y2="1">
+				<stop offset="0" stop-color="#c9d8ff" stop-opacity="0" />
+				<stop offset="0.5" stop-color="#e8eeff" stop-opacity="0.9" />
+				<stop offset="1" stop-color="#c9d8ff" stop-opacity="0" />
+			</linearGradient>
+		</defs>
+
+		<g class="grid">
+			{ra.map(({ x }) => <line x1={x} y1="0" x2={x} y2="660" />)}
+			{dec.map(({ y }) => <line x1="0" y1={y} x2="1200" y2={y} />)}
+		</g>
+		<g class="coords" aria-hidden="true">
+			{ra.map(({ x, label }) => <text x={x + 6} y="18">{label}</text>)}
+			{dec.map(({ y, label }) => <text x="8" y={y - 6}>{label}</text>)}
+		</g>
+
+		<g class="field" aria-hidden="true">
+			{field.map((s) => <circle cx={s.x} cy={s.y} r={s.r} opacity={s.o} />)}
+		</g>
+
+		<g class="links" aria-hidden="true">
+			{
+				links.map(({ from, to, dashed }, i) => (
+					<line
+						class:list={{ dashed }}
+						x1={at(from).x}
+						y1={at(from).y}
+						x2={at(to).x}
+						y2={at(to).y}
+						pathLength="1"
+						style={`--i: ${i}`}
+					/>
+				))
+			}
+		</g>
+
+		<g class="nodes" aria-hidden="true">
+			{
+				Object.values(nodes).map((n, i) => (
+					<g class="node" style={`--i: ${i}`}>
+						<circle cx={n.x} cy={n.y} r="9" class="ring" />
+						<circle cx={n.x} cy={n.y} r="3.5" />
+						<text x={n.x + n.dx} y={n.y + n.dy} text-anchor={n.anchor}>
+							{n.label}
+							{n.domain && <tspan class="suffix">.example.com</tspan>}
+						</text>
+					</g>
+				))
+			}
+		</g>
+
+		<g class="sirius" transform={`translate(${center.x} ${center.y})`} aria-hidden="true">
+			<circle r="170" fill="url(#halo)" class="glow" />
+			<rect x="-190" y="-0.9" width="380" height="1.8" fill="url(#spike-h)" class="spike" />
+			<rect x="-0.9" y="-150" width="1.8" height="300" fill="url(#spike-v)" class="spike" />
+			<path d={star} class="core" />
+			<text x="-24" y="58" text-anchor="end" class="server">{t.server}</text>
+		</g>
+	</svg>
+
+	<div class="copy">
+		<h1 id="_top" data-page-title set:html={title} />
+		{tagline && <p class="tagline" set:html={tagline} />}
+		<div class="actions">
+			<a class="button primary" href={betaMailto(locale)}>{hero.beta}</a>
+			<a class="button secondary" href={docsUrl(locale, 'installation')}>{hero.docs}</a>
+		</div>
+		<p class="note">{hero.note}</p>
+	</div>
+
+	<p class="legend">{t.legend}</p>
+</section>
+
+<style>
+	.plate {
+		--night: #0d1530;
+		--line: #8ea6ff;
+		--starlight: #c9d8ff;
+		--core: #f2f5ff;
+		--dim: #6b79a8;
+		--ink: #e8eeff;
+
+		position: relative;
+		display: grid;
+		overflow: hidden;
+		container-type: inline-size;
+		margin-block: 0.5rem 2rem;
+		border: 1px solid rgb(201 216 255 / 0.14);
+		border-radius: 0.375rem;
+		background:
+			radial-gradient(ellipse 70% 90% at 64% 38%, #17224a 0%, transparent 70%),
+			var(--night);
+		color: var(--ink);
+	}
+
+	.chart {
+		display: block;
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		height: auto;
+	}
+
+	.grid line {
+		stroke: var(--starlight);
+		stroke-opacity: 0.07;
+		stroke-width: 1;
+	}
+	.coords text {
+		fill: var(--dim);
+		font-family: var(--sl-font-mono);
+		font-size: 11px;
+	}
+	.field circle {
+		fill: var(--starlight);
+	}
+	.links line {
+		stroke: var(--line);
+		stroke-opacity: 0.55;
+		stroke-width: 1.4;
+	}
+	.links line.dashed {
+		stroke-dasharray: 0.012 0.012;
+		stroke-opacity: 0.45;
+	}
+	.node circle {
+		fill: var(--core);
+	}
+	.node .ring {
+		fill: none;
+		stroke: var(--line);
+		stroke-opacity: 0.5;
+	}
+	.node text,
+	.server {
+		fill: var(--ink);
+		font-family: var(--sl-font-mono);
+		font-size: 32px;
+	}
+	.suffix,
+	.coords {
+		display: none;
+	}
+	.server {
+		fill: var(--starlight);
+		font-weight: 600;
+	}
+	.core {
+		fill: var(--core);
+		filter: drop-shadow(0 0 10px rgb(201 216 255 / 0.8));
+	}
+
+	.copy {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		padding: 0.5rem 1.25rem 1.5rem;
+	}
+
+	h1 {
+		margin: 0;
+		color: #fff;
+		font-size: clamp(2.25rem, 1.2rem + 4.2vw, 4.25rem);
+		font-stretch: 125%;
+		font-weight: 800;
+		line-height: 0.98;
+		letter-spacing: -0.025em;
+		text-wrap: balance;
+	}
+	.tagline {
+		margin: 0;
+		max-width: 44ch;
+		color: #b9c5ea;
+		font-size: clamp(1rem, 0.9rem + 0.45vw, 1.2rem);
+		line-height: 1.55;
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+	.button {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.7rem 1.35rem;
+		border-radius: 999px;
+		font-weight: 650;
+		text-decoration: none;
+		transition:
+			background-color 0.15s,
+			border-color 0.15s;
+	}
+	.primary {
+		background: var(--starlight);
+		color: var(--night);
+	}
+	.primary:hover {
+		background: #fff;
+	}
+	.secondary {
+		border: 1px solid rgb(201 216 255 / 0.35);
+		color: var(--ink);
+	}
+	.secondary:hover {
+		border-color: var(--starlight);
+	}
+	.button:focus-visible {
+		outline: 2px solid var(--starlight);
+		outline-offset: 3px;
+	}
+
+	.note {
+		margin: -0.35rem 0 0;
+		color: #93a1cc;
+		font-size: 0.85rem;
+	}
+
+	.legend {
+		margin: 0;
+		padding: 0 1.25rem 1.25rem;
+		color: var(--dim);
+		font-size: 0.8rem;
+	}
+
+	/* Tablets and up: the whole chart, with full labels. */
+	@media (min-width: 50rem) {
+		.chart {
+			aspect-ratio: 1200 / 660;
+		}
+		.node text,
+		.server {
+			font-size: 17px;
+		}
+		.suffix,
+		.coords {
+			display: inline;
+		}
+		.coords text {
+			font-size: 11px;
+		}
+		.copy {
+			padding: 0.5rem 2rem 1.5rem;
+		}
+		.legend {
+			padding: 0 2rem 1.5rem;
+		}
+	}
+
+	/* Wide screens: the copy laid over the chart's empty lower-left quarter, sized on the plate
+	   (cqi) rather than the viewport, so it keeps clear of the constellation at any width. */
+	@media (min-width: 64rem) {
+		.node text,
+		.server {
+			font-size: 15px;
+		}
+		.copy {
+			position: absolute;
+			inset: auto auto 0 0;
+			max-width: 49cqi;
+			gap: 1.1rem;
+			padding: 0 0 4cqi 4cqi;
+		}
+		h1 {
+			font-size: min(6cqi, 4rem);
+		}
+		.tagline {
+			font-size: clamp(0.95rem, 1.55cqi, 1.15rem);
+		}
+		.legend {
+			position: absolute;
+			right: 1.5rem;
+			bottom: 1.25rem;
+			max-width: 20rem;
+			padding: 0;
+			text-align: end;
+		}
+	}
+
+	/* The one moment of motion: the constellation draws itself and the star flares, once. */
+	@media (prefers-reduced-motion: no-preference) {
+		.links line {
+			stroke-dasharray: 1;
+			stroke-dashoffset: 1;
+			animation: draw 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+			animation-delay: calc(0.35s + var(--i) * 0.12s);
+		}
+		.links line.dashed {
+			stroke-dasharray: 0.012 0.012;
+			stroke-dashoffset: 0;
+			opacity: 0;
+			animation: appear 0.8s ease-out forwards;
+			animation-delay: calc(0.6s + var(--i) * 0.12s);
+		}
+		.node {
+			opacity: 0;
+			animation: appear 0.6s ease-out forwards;
+			animation-delay: calc(0.7s + var(--i) * 0.1s);
+		}
+		.sirius .core,
+		.sirius .spike {
+			transform-box: fill-box;
+			transform-origin: center;
+			animation: flare 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+		}
+		.sirius .glow {
+			animation: glow 1.8s ease-out both;
+		}
+		.sirius .server {
+			opacity: 0;
+			animation: appear 0.6s ease-out 0.9s forwards;
+		}
+	}
+	@keyframes draw {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes appear {
+		to {
+			opacity: 1;
+		}
+	}
+	@keyframes flare {
+		0% {
+			transform: scale(0.2);
+			opacity: 0;
+		}
+		45% {
+			transform: scale(1.25);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+	@keyframes glow {
+		0% {
+			opacity: 0;
+		}
+		40% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0.8;
+		}
+	}
+</style>

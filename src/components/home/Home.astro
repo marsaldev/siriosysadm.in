@@ -1,0 +1,290 @@
+---
+// Everything on the home page below the hero. Copy in copy.ts, both locales.
+import { betaMailto } from '../../beta.mjs';
+import { copy, docsUrl, localeOf } from './copy';
+
+const locale = localeOf(Astro.locals.starlightRoute.lang);
+const t = copy[locale];
+---
+
+<div class="home not-content">
+	<p class="lead">{t.lead}</p>
+
+	<section class="does" aria-labelledby="does">
+		<h2 id="does">{t.does}</h2>
+		{
+			t.groups.map((group) => (
+				<div class="group">
+					<h3>{group.title}</h3>
+					<dl>
+						{group.items.map((item) => (
+							<div class="item">
+								<dt>{item.title}</dt>
+								<dd>
+									<p>{item.text}</p>
+									{'link' in item && item.link && (
+										<a href={docsUrl(locale, item.link, 'anchor' in item ? item.anchor : undefined)}>{item.more}</a>
+									)}
+								</dd>
+							</div>
+						))}
+					</dl>
+				</div>
+			))
+		}
+	</section>
+
+	<section class="root" aria-labelledby="root">
+		<div class="root-intro">
+			<h2 id="root">{t.root.title}</h2>
+			<p>{t.root.text}</p>
+			<a href={docsUrl(locale, 'security')}>{t.root.more}</a>
+		</div>
+		<ol class="path">
+			{t.root.steps.map((step) => <li>{step}</li>)}
+		</ol>
+	</section>
+
+	<section class="limits">
+		<div>
+			<h2>{t.isnt.title}</h2>
+			<ul>
+				{
+					t.isnt.items.map(([head, rest]) => (
+						<li>
+							<strong>{head}</strong> {rest}
+						</li>
+					))
+				}
+			</ul>
+		</div>
+		<div>
+			<h2>{t.needs.title}</h2>
+			<ul>{t.needs.items.map((item) => <li>{item}</li>)}</ul>
+		</div>
+	</section>
+
+	<section class="end">
+		<svg class="end-star" viewBox="-44 -44 88 88" aria-hidden="true">
+			<path d="M0 -40 L7 -9 L40 0 L7 9 L0 40 L-7 9 L-40 0 L-7 -9 Z" />
+		</svg>
+		<h2>{t.end.title}</h2>
+		<p>{t.end.text}</p>
+		<div class="actions">
+			<a class="button primary" href={betaMailto(locale)}>{t.end.beta}</a>
+			<a class="button secondary" href={docsUrl(locale, 'installation')}>{t.end.docs}</a>
+		</div>
+	</section>
+</div>
+
+<style>
+	.home {
+		--rule: var(--sl-color-hairline);
+		--muted: var(--sl-color-gray-2);
+		--strong: var(--sl-color-white);
+		color: var(--muted);
+	}
+
+	h2 {
+		margin: 0;
+		color: var(--strong);
+		font-size: clamp(1.75rem, 1.2rem + 2vw, 2.6rem);
+		font-stretch: 125%;
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		text-wrap: balance;
+	}
+
+	a {
+		color: var(--sl-color-text-accent);
+		font-weight: 600;
+		text-underline-offset: 0.2em;
+	}
+
+	.lead {
+		max-width: 62ch;
+		margin: 1rem 0 0;
+		color: var(--strong);
+		font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem);
+		line-height: 1.5;
+	}
+
+	section {
+		margin-top: clamp(4rem, 3rem + 4vw, 7rem);
+	}
+
+	/* What it does: an index, a group per row, its entries in two columns. */
+	.does h2 {
+		margin-bottom: 1.5rem;
+	}
+	.group {
+		display: grid;
+		gap: 1rem 2.5rem;
+		padding-block: 2rem;
+		border-top: 1px solid var(--rule);
+	}
+	.group h3 {
+		margin: 0;
+		color: var(--sl-color-text-accent);
+		font-size: 1.1rem;
+		font-stretch: 112%;
+		font-weight: 700;
+	}
+	dl {
+		display: grid;
+		gap: 2rem 2.5rem;
+		margin: 0;
+	}
+	dt {
+		color: var(--strong);
+		font-size: 1.1rem;
+		font-weight: 700;
+	}
+	dd {
+		margin: 0.4rem 0 0;
+	}
+	dd p {
+		margin: 0 0 0.5rem;
+		line-height: 1.6;
+	}
+	@media (min-width: 50rem) {
+		.group {
+			grid-template-columns: 13rem 1fr;
+		}
+		.group h3 {
+			position: sticky;
+			top: calc(var(--sl-nav-height) + 1.5rem);
+			align-self: start;
+		}
+		dl {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	/* The privileged path: a real sequence, so it's numbered. */
+	.root {
+		display: grid;
+		gap: 2.5rem;
+	}
+	.root-intro p {
+		max-width: 46ch;
+		margin: 1rem 0;
+		line-height: 1.6;
+	}
+	.path {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		counter-reset: step;
+	}
+	.path li {
+		position: relative;
+		padding: 0 0 1.75rem 3.25rem;
+		color: var(--strong);
+		line-height: 1.55;
+		counter-increment: step;
+	}
+	.path li::before {
+		content: counter(step);
+		position: absolute;
+		left: 0;
+		top: -0.1rem;
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border: 1px solid var(--sl-color-accent);
+		border-radius: 50%;
+		background: var(--sl-color-bg);
+		color: var(--sl-color-text-accent);
+		font-family: var(--sl-font-mono);
+		font-size: 0.85rem;
+	}
+	.path li:not(:last-child)::after {
+		content: '';
+		position: absolute;
+		left: calc(1rem - 0.5px);
+		top: 2.1rem;
+		bottom: 0.2rem;
+		border-left: 1px dashed var(--sl-color-accent);
+	}
+	@media (min-width: 50rem) {
+		.root {
+			grid-template-columns: 1fr 1fr;
+			gap: 4rem;
+		}
+	}
+
+	/* Limits and requirements, side by side. */
+	.limits {
+		display: grid;
+		gap: 3rem;
+	}
+	.limits h2 {
+		font-size: clamp(1.4rem, 1.1rem + 1vw, 1.8rem);
+		margin-bottom: 1rem;
+	}
+	.limits ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.limits li {
+		padding-block: 0.8rem;
+		border-top: 1px solid var(--rule);
+		line-height: 1.55;
+	}
+	.limits strong {
+		color: var(--strong);
+	}
+	@media (min-width: 50rem) {
+		.limits {
+			grid-template-columns: 1fr 1fr;
+			gap: 4rem;
+		}
+	}
+
+	/* Closing call to action. */
+	.end {
+		display: grid;
+		justify-items: center;
+		gap: 1rem;
+		padding-block: 3rem 1rem;
+		text-align: center;
+	}
+	.end-star {
+		width: 2.75rem;
+		height: 2.75rem;
+		fill: var(--sl-color-accent);
+	}
+	.end p {
+		max-width: 44ch;
+		margin: 0;
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+	}
+	.button {
+		padding: 0.7rem 1.35rem;
+		border-radius: 999px;
+		text-decoration: none;
+	}
+	.primary {
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+	}
+	.secondary {
+		border: 1px solid var(--sl-color-gray-4);
+		color: var(--strong);
+	}
+	.button:focus-visible,
+	a:focus-visible {
+		outline: 2px solid var(--sl-color-text-accent);
+		outline-offset: 3px;
+	}
+</style>

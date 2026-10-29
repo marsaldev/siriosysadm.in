@@ -1,0 +1,30 @@
+/* The panel's palette and typefaces (web/src/styles.css in the Sirio repository). */
+
+:root {
+	--sl-font: 'Archivo Variable', system-ui, -apple-system, sans-serif;
+	--sl-font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, monospace;
+
+	/* Dark theme, Starlight's default. */
+	--sl-color-accent-low: #1a2451;
+	--sl-color-accent: #5b74f0;
+	--sl-color-accent-high: #c9d8ff;
+}
+
+/* Starlight's dark grays, pulled towards the navy of the logo. Scoped: this file isn't in a
+   cascade layer, so on :root alone it would beat the light theme's grays too. */
+:root:not([data-theme='light']) {
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #e6eaf6;
+	--sl-color-gray-2: #c0c8e0;
+	--sl-color-gray-3: #8792b6;
+	--sl-color-gray-4: #545f84;
+	--sl-color-gray-5: #323b5a;
+	--sl-color-gray-6: #1c2440;
+	--sl-color-black: #121a31;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #e4e8ff;
+	--sl-color-accent: #2438c0;
+	--sl-color-accent-high: #16206e;
+}

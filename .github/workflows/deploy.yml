@@ -1,0 +1,95 @@
+name: Deploy
+
+# Builds the site with the docs of a Sirio release and publishes it on GitHub Pages.
+#
+# - repository_dispatch "sirio-release": sent by Sirio's release workflow, with the tag in
+#   client_payload.tag;
+# - workflow_dispatch: by hand, optionally naming a tag or branch (default: the latest release);
+# - push to main: changes to the site itself, with the latest release's docs.
+#
+# Needs the secret SIRIO_DOCS_TOKEN: a fine-grained token with read-only "Contents" access to
+# marsaldev/siriosysadmin, which is private.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Sirio tag or branch to take the docs from (empty = latest release)
+        required: false
+  repository_dispatch:
+    types: [sirio-release]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v7
+
+      # Untrusted inputs reach the shell as environment variables, never interpolated.
+      - name: Pick the Sirio release
+        id: sirio
+        env:
+          GH_TOKEN: ${{ secrets.SIRIO_DOCS_TOKEN }}
+          REQUESTED: ${{ github.event.inputs.ref || github.event.client_payload.tag }}
+        run: |
+          ref="$REQUESTED"
+          if [ -z "$ref" ]; then
+            ref=$(gh api repos/marsaldev/siriosysadmin/releases/latest --jq .tag_name)
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
+      - name: Check out Sirio's docs
+        uses: actions/checkout@v7
+        with:
+          repository: marsaldev/siriosysadmin
+          ref: ${{ steps.sirio.outputs.ref }}
+          token: ${{ secrets.SIRIO_DOCS_TOKEN }}
+          path: siriosysadmin
+          sparse-checkout: docs
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test the docs sync
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          SIRIO_SRC: siriosysadmin
+          SIRIO_REF: ${{ steps.sirio.outputs.ref }}
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish on GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
