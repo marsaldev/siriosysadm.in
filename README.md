@@ -9,6 +9,7 @@ documentation, in English and Italian. Built with [Astro Starlight](https://star
 |---|---|---|
 | `src/content/docs/index.mdx`, `src/content/docs/it/index.mdx` | home page | here |
 | `src/components/home/` | the home page's copy (`copy.ts`, both locales) and sections | here |
+| `src/content/docs/features.mdx`, `src/content/docs/it/features.mdx`, `src/components/features/` | the features page, its copy (`copy.ts`, both locales) | here |
 | `src/beta.mjs` | the private-beta contact: the email behind every "Ask to join" link, and the banner on the docs | here |
 | `src/content/docs/docs/`, `src/content/docs/it/docs/` | the documentation | **in the Sirio repository**, `docs/` and `docs/it/` |
 

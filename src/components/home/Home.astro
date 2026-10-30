@@ -1,6 +1,7 @@
 ---
 // Everything on the home page below the hero. Copy in copy.ts, both locales.
 import { betaMailto } from '../../beta.mjs';
+import { featuresUrl } from '../features/copy';
 import { copy, docsUrl, localeOf } from './copy';
 
 const locale = localeOf(Astro.locals.starlightRoute.lang);
@@ -32,6 +33,7 @@ const t = copy[locale];
 				</div>
 			))
 		}
+		<a class="all" href={featuresUrl(locale)}>{t.all} →</a>
 	</section>
 
 	<section class="root" aria-labelledby="root">
@@ -147,6 +149,13 @@ const t = copy[locale];
 	dd p {
 		margin: 0 0 0.5rem;
 		line-height: 1.6;
+	}
+	.all {
+		display: inline-block;
+		padding-top: 2rem;
+		border-top: 1px solid var(--rule);
+		width: 100%;
+		font-size: 1.1rem;
 	}
 	@media (min-width: 50rem) {
 		.group {

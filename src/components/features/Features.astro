@@ -1,0 +1,250 @@
+---
+// The features page: an index of the sections, then every section with its features. Copy in
+// copy.ts, both locales.
+import { betaMailto } from '../../beta.mjs';
+import { copy, docsUrl, localeOf } from '../home/copy';
+import { features } from './copy';
+
+const locale = localeOf(Astro.locals.starlightRoute.lang);
+const t = features[locale];
+const end = copy[locale].end;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<div class="features not-content">
+	<p class="lead">{t.lead}</p>
+
+	<nav class="index" aria-label={t.index}>
+		<ol>
+			{
+				t.categories.map((cat, i) => (
+					<li>
+						<a href={`#${cat.id}`}>
+							<span class="num">{pad(i + 1)}</span>
+							<span class="name">{cat.title}</span>
+							<span class="count">
+								{cat.items.length} <span class="sr-only">{t.count}</span>
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ol>
+	</nav>
+
+	{
+		t.categories.map((cat, i) => (
+			<section class="category" id={cat.id} aria-labelledby={`${cat.id}-title`}>
+				<header>
+					<span class="num" aria-hidden="true">
+						{pad(i + 1)}
+					</span>
+					<h2 id={`${cat.id}-title`}>{cat.title}</h2>
+					<p>{cat.summary}</p>
+					{cat.link && <a href={docsUrl(locale, cat.link, cat.anchor)}>{cat.more}</a>}
+				</header>
+				<dl>
+					{cat.items.map((item) => (
+						<div class="item">
+							<dt>{item.title}</dt>
+							<dd>
+								<p>{item.text}</p>
+								{item.link && <a href={docsUrl(locale, item.link, item.anchor)}>{item.more}</a>}
+							</dd>
+						</div>
+					))}
+				</dl>
+			</section>
+		))
+	}
+
+	<section class="end">
+		<svg class="end-star" viewBox="-44 -44 88 88" aria-hidden="true">
+			<path d="M0 -40 L7 -9 L40 0 L7 9 L0 40 L-7 9 L-40 0 L-7 -9 Z" />
+		</svg>
+		<h2>{end.title}</h2>
+		<p>{end.text}</p>
+		<div class="actions">
+			<a class="button primary" href={betaMailto(locale)}>{end.beta}</a>
+			<a class="button secondary" href={docsUrl(locale, 'installation')}>{end.docs}</a>
+		</div>
+	</section>
+</div>
+
+<style>
+	.features {
+		--rule: var(--sl-color-hairline);
+		--muted: var(--sl-color-gray-2);
+		--strong: var(--sl-color-white);
+		color: var(--muted);
+	}
+
+	h2 {
+		margin: 0;
+		color: var(--strong);
+		font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.3rem);
+		font-stretch: 125%;
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		text-wrap: balance;
+	}
+
+	a {
+		color: var(--sl-color-text-accent);
+		font-weight: 600;
+		text-underline-offset: 0.2em;
+	}
+	a:focus-visible {
+		outline: 2px solid var(--sl-color-text-accent);
+		outline-offset: 3px;
+	}
+
+	.num {
+		color: var(--sl-color-text-accent);
+		font-family: var(--sl-font-mono);
+		font-size: 0.85rem;
+	}
+
+	.lead {
+		max-width: 62ch;
+		margin: 0;
+		color: var(--strong);
+		font-size: clamp(1.1rem, 1rem + 0.45vw, 1.3rem);
+		line-height: 1.5;
+	}
+
+	/* The index: every section with how many features it holds. */
+	.index ol {
+		display: grid;
+		gap: 0;
+		margin: 2.5rem 0 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--rule);
+	}
+	.index li {
+		border-bottom: 1px solid var(--rule);
+	}
+	.index a {
+		display: flex;
+		align-items: baseline;
+		gap: 0.9rem;
+		padding: 0.7rem 0.25rem;
+		color: var(--strong);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.index a:hover .name {
+		color: var(--sl-color-text-accent);
+	}
+	.index .name {
+		flex: 1;
+	}
+	.index .count {
+		color: var(--sl-color-gray-3);
+		font-family: var(--sl-font-mono);
+		font-size: 0.8rem;
+		font-weight: 400;
+	}
+	@media (min-width: 40rem) {
+		.index ol {
+			grid-template-columns: 1fr 1fr;
+			column-gap: 2.5rem;
+		}
+	}
+	@media (min-width: 64rem) {
+		.index ol {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	/* A section: its intro on the left, kept in view, its features on the right. */
+	.category {
+		display: grid;
+		gap: 1.75rem 3rem;
+		margin-top: clamp(3.5rem, 2.5rem + 3vw, 5.5rem);
+		padding-top: 2rem;
+		border-top: 1px solid var(--rule);
+		scroll-margin-top: calc(var(--sl-nav-height) + 1rem);
+	}
+	header {
+		display: grid;
+		align-content: start;
+		gap: 0.6rem;
+	}
+	header p {
+		max-width: 40ch;
+		margin: 0.25rem 0 0;
+		line-height: 1.55;
+	}
+	dl {
+		display: grid;
+		gap: 1.75rem 2.5rem;
+		margin: 0;
+	}
+	dt {
+		color: var(--strong);
+		font-size: 1.05rem;
+		font-weight: 700;
+	}
+	dd {
+		margin: 0.35rem 0 0;
+	}
+	dd p {
+		margin: 0 0 0.4rem;
+		line-height: 1.6;
+	}
+	@media (min-width: 50rem) {
+		.category {
+			grid-template-columns: 15rem 1fr;
+		}
+		header {
+			position: sticky;
+			top: calc(var(--sl-nav-height) + 1.5rem);
+			align-self: start;
+		}
+		dl {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	/* Closing call to action, as on the home page. */
+	.end {
+		display: grid;
+		justify-items: center;
+		gap: 1rem;
+		margin-top: clamp(4rem, 3rem + 4vw, 7rem);
+		padding-block: 3rem 1rem;
+		text-align: center;
+	}
+	.end-star {
+		width: 2.75rem;
+		height: 2.75rem;
+		fill: var(--sl-color-accent);
+	}
+	.end p {
+		max-width: 44ch;
+		margin: 0;
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+	}
+	.button {
+		padding: 0.7rem 1.35rem;
+		border-radius: 999px;
+		text-decoration: none;
+	}
+	.primary {
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+	}
+	.secondary {
+		border: 1px solid var(--sl-color-gray-4);
+		color: var(--strong);
+	}
+</style>
