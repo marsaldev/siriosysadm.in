@@ -18,7 +18,10 @@ export default defineConfig({
 				root: { label: 'English', lang: 'en' },
 				it: { label: 'Italiano', lang: 'it' },
 			},
-			components: { Hero: './src/components/Hero.astro' },
+			components: {
+				Hero: './src/components/Hero.astro',
+				SocialIcons: './src/components/HeaderLinks.astro',
+			},
 			// Dark by default. Starlight falls back to the system theme when nothing is stored, and
 			// stores "auto" as an empty value, so seed "dark" once, on the first visit only: whoever
 			// then picks Auto or Light keeps it. Runs in <head>, before Starlight's theme script.

@@ -20,7 +20,14 @@ export const copy = {
 		lead:
 			'Sirio is a single Go binary that runs as a systemd service on the machine it administers, and manages it through the Docker socket. The panel, the API and the database are all inside it: nothing to deploy alongside, no agent, no cluster. It’s made for the server that hosts a handful of sites and applications, the one you’d otherwise look after over SSH.',
 		does: 'What it does',
-		all: 'Every feature, section by section',
+		glance: {
+			title: 'Everything, at a glance',
+			intro: 'Every section of the panel and what’s in it. Each one opens the features page, where every entry is explained.',
+			section: 'Section',
+			features: 'What’s included',
+			count: 'Features',
+			all: 'Every feature, in detail',
+		},
 		groups: [
 			{
 				title: 'Sites and deploys',
@@ -141,7 +148,14 @@ export const copy = {
 		lead:
 			'Sirio è un singolo binario Go che gira come servizio systemd sulla macchina che amministra, e la gestisce attraverso il socket di Docker. Pannello, API e database stanno tutti lì dentro: niente da installare accanto, nessun agente, nessun cluster. È pensato per il server che ospita una manciata di siti e applicazioni, quello che altrimenti curi via SSH.',
 		does: 'Cosa fa',
-		all: 'Tutte le funzionalità, sezione per sezione',
+		glance: {
+			title: 'Tutto, a colpo d’occhio',
+			intro: 'Ogni sezione del pannello e cosa contiene. Ognuna apre la pagina delle funzionalità, dove ogni voce è spiegata.',
+			section: 'Sezione',
+			features: 'Cosa comprende',
+			count: 'Funzionalità',
+			all: 'Tutte le funzionalità, nel dettaglio',
+		},
 		groups: [
 			{
 				title: 'Siti e deploy',

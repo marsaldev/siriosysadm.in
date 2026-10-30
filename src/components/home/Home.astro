@@ -1,11 +1,12 @@
 ---
 // Everything on the home page below the hero. Copy in copy.ts, both locales.
 import { betaMailto } from '../../beta.mjs';
-import { featuresUrl } from '../features/copy';
+import { features, featuresUrl } from '../features/copy';
 import { copy, docsUrl, localeOf } from './copy';
 
 const locale = localeOf(Astro.locals.starlightRoute.lang);
 const t = copy[locale];
+const sections = features[locale].categories;
 ---
 
 <div class="home not-content">
@@ -33,7 +34,52 @@ const t = copy[locale];
 				</div>
 			))
 		}
-		<a class="all" href={featuresUrl(locale)}>{t.all} →</a>
+	</section>
+
+	<section class="glance" aria-labelledby="glance">
+		<div class="glance-intro">
+			<h2 id="glance">{t.glance.title}</h2>
+			<p>{t.glance.intro}</p>
+		</div>
+		<table>
+			<thead>
+				<tr>
+					<th scope="col">{t.glance.section}</th>
+					<th scope="col">{t.glance.features}</th>
+					<th scope="col" class="count">{t.glance.count}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					sections.map((cat, i) => (
+						<tr>
+							<th scope="row">
+								<a href={featuresUrl(locale, cat.id)}>
+									<span class="num">{String(i + 1).padStart(2, '0')}</span>
+									{cat.title}
+								</a>
+							</th>
+							<td>
+								<ul>
+									{cat.items.map((item) => (
+										<li>{item.title}</li>
+									))}
+								</ul>
+							</td>
+							<td class="count">{cat.items.length}</td>
+						</tr>
+					))
+				}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="2">
+						<a href={featuresUrl(locale)}>{t.glance.all} →</a>
+					</td>
+					<td class="count">{sections.reduce((n, cat) => n + cat.items.length, 0)}</td>
+				</tr>
+			</tfoot>
+		</table>
 	</section>
 
 	<section class="root" aria-labelledby="root">
@@ -150,13 +196,6 @@ const t = copy[locale];
 		margin: 0 0 0.5rem;
 		line-height: 1.6;
 	}
-	.all {
-		display: inline-block;
-		padding-top: 2rem;
-		border-top: 1px solid var(--rule);
-		width: 100%;
-		font-size: 1.1rem;
-	}
 	@media (min-width: 50rem) {
 		.group {
 			grid-template-columns: 13rem 1fr;
@@ -168,6 +207,142 @@ const t = copy[locale];
 		}
 		dl {
 			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	/* Everything at a glance: one row per section of the features page, generated from its copy.
+	   On phones each row stacks (name and count, then the list); from 50rem it's a real table. */
+	.glance-intro p {
+		max-width: 56ch;
+		margin: 1rem 0 0;
+		line-height: 1.6;
+	}
+	table {
+		display: block;
+		width: 100%;
+		margin-top: 2rem;
+		border-collapse: collapse;
+		font-size: 0.95rem;
+	}
+	thead {
+		display: none;
+	}
+	tbody,
+	tfoot {
+		display: block;
+	}
+	tbody tr {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 0.5rem 1rem;
+		padding-block: 1.1rem;
+		border-top: 1px solid var(--rule);
+	}
+	tbody th {
+		font-weight: 700;
+		text-align: start;
+	}
+	tbody th a {
+		display: inline-flex;
+		gap: 0.75rem;
+		align-items: baseline;
+		color: var(--strong);
+		text-decoration: none;
+	}
+	tbody th a:hover {
+		color: var(--sl-color-text-accent);
+	}
+	.num {
+		color: var(--sl-color-text-accent);
+		font-family: var(--sl-font-mono);
+		font-size: 0.8rem;
+		font-weight: 400;
+	}
+	tbody td:not(.count) {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+	td ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		line-height: 1.7;
+	}
+	td li {
+		display: inline;
+	}
+	td li:not(:last-child)::after {
+		content: ' · ';
+		color: var(--sl-color-gray-4);
+	}
+	.count {
+		color: var(--sl-color-gray-3);
+		font-family: var(--sl-font-mono);
+		font-size: 0.85rem;
+		font-variant-numeric: tabular-nums;
+		text-align: end;
+	}
+	tfoot tr {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 1rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--sl-color-gray-4);
+	}
+	tfoot a {
+		font-size: 1.05rem;
+	}
+	tfoot .count {
+		color: var(--strong);
+	}
+	@media (min-width: 50rem) {
+		table {
+			display: table;
+		}
+		thead {
+			display: table-header-group;
+		}
+		tbody {
+			display: table-row-group;
+		}
+		tfoot {
+			display: table-footer-group;
+		}
+		thead tr,
+		tbody tr,
+		tfoot tr {
+			display: table-row;
+		}
+		th,
+		td {
+			padding: 1rem 1.5rem 1rem 0;
+			border-top: 1px solid var(--rule);
+			vertical-align: baseline;
+		}
+		thead th {
+			padding-block: 0 0.75rem;
+			border-top: 0;
+			color: var(--sl-color-gray-3);
+			font-family: var(--sl-font-mono);
+			font-size: 0.75rem;
+			font-weight: 400;
+			letter-spacing: 0.06em;
+			text-align: start;
+			text-transform: uppercase;
+		}
+		tbody th {
+			width: 16rem;
+		}
+		.count,
+		thead th.count {
+			width: 7rem;
+			padding-inline-end: 0;
+			text-align: end;
+		}
+		tfoot td {
+			padding-top: 1.25rem;
+			border-top: 1px solid var(--sl-color-gray-4);
 		}
 	}
 
