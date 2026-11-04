@@ -8,3 +8,28 @@ src/content/docs/it/docs/
 
 # The Sirio checkout the deploy workflow takes the docs from.
 /siriosysadmin/
+
+# Editors and IDEs.
+.idea/
+.vscode/
+.fleet/
+.zed/
+*.swp
+*~
+.DS_Store
+
+# AI assistants and their local config.
+.claude/
+.mcp.json
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.aider*
+.continue/
+.codeium/
+.github/copilot-instructions.md
