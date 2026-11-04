@@ -1,0 +1,258 @@
+---
+// The home page's screenshots: the overview, then the one of each section of the features page
+// that has one. A horizontal scroller with scroll snap, so it swipes on touch and scrolls with the
+// keyboard and trackpad without any script; the script only adds the tabs and arrows above it and
+// keeps them in step with the scroll. No autoplay. Images stay lazy: a slide's are fetched as it
+// nears the edge of the track.
+import Screenshot from '../Screenshot.astro';
+import { features, featuresUrl } from '../features/copy';
+import { copy, localeOf } from './copy';
+
+const locale = localeOf(Astro.locals.starlightRoute.lang);
+const t = copy[locale];
+
+const slides = [
+	{ name: 'overview', label: t.shot.label, alt: t.shot.alt, caption: t.shot.caption, href: undefined },
+	...features[locale].categories.flatMap((cat) =>
+		cat.shot ? [{ ...cat.shot, href: featuresUrl(locale, cat.id) }] : [],
+	),
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="gallery" aria-roledescription="carousel" aria-label={t.gallery.label}>
+	<div class="controls" hidden>
+		<ol class="tabs">
+			{
+				slides.map((slide, i) => (
+					<li>
+						<button type="button" data-to={i} aria-controls={`shot-${slide.name}`} aria-current={i === 0 ? 'true' : undefined}>
+							<span class="num" aria-hidden="true">
+								{pad(i + 1)}
+							</span>
+							{slide.label}
+						</button>
+					</li>
+				))
+			}
+		</ol>
+		<p class="count" aria-hidden="true">
+			<span data-current>{pad(1)}</span> / {pad(slides.length)}
+		</p>
+		<div class="arrows">
+			<button type="button" data-step="-1" aria-label={t.gallery.prev} disabled>
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+			</button>
+			<button type="button" data-step="1" aria-label={t.gallery.next}>
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+			</button>
+		</div>
+	</div>
+
+	<div class="track" tabindex="0" aria-label={t.gallery.label}>
+		{
+			slides.map((slide, i) => (
+				<div
+					class="slide"
+					id={`shot-${slide.name}`}
+					role="group"
+					aria-roledescription="slide"
+					aria-label={`${t.gallery.slide} ${i + 1} ${t.gallery.of} ${slides.length}: ${slide.label}`}
+				>
+					<Screenshot
+						name={slide.name}
+						{locale}
+						alt={slide.alt}
+						caption={slide.caption}
+						sizes="(min-width: 80rem) 72rem, calc(100vw - 2rem)"
+					>
+						{slide.href && <a href={slide.href}>{t.gallery.more} →</a>}
+					</Screenshot>
+				</div>
+			))
+		}
+	</div>
+</section>
+
+<script>
+	const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+
+	for (const gallery of document.querySelectorAll<HTMLElement>('.gallery')) {
+		const track = gallery.querySelector<HTMLElement>('.track')!;
+		const slides = [...track.querySelectorAll<HTMLElement>('.slide')];
+		const tabs = [...gallery.querySelectorAll<HTMLButtonElement>('[data-to]')];
+		const [prev, next] = gallery.querySelectorAll<HTMLButtonElement>('[data-step]');
+		const counter = gallery.querySelector<HTMLElement>('[data-current]')!;
+		let current = 0;
+
+		const go = (i: number) => {
+			const slide = slides[Math.max(0, Math.min(slides.length - 1, i))];
+			track.scrollTo({ left: slide.offsetLeft - track.offsetLeft, behavior: reduced.matches ? 'auto' : 'smooth' });
+		};
+		const mark = (i: number) => {
+			current = i;
+			tabs.forEach((tab, j) => (j === i ? tab.setAttribute('aria-current', 'true') : tab.removeAttribute('aria-current')));
+			prev.disabled = i === 0;
+			next.disabled = i === slides.length - 1;
+			counter.textContent = String(i + 1).padStart(2, '0');
+		};
+
+		tabs.forEach((tab, i) => tab.addEventListener('click', () => go(i)));
+		prev.addEventListener('click', () => go(current - 1));
+		next.addEventListener('click', () => go(current + 1));
+
+		// The slide that fills most of the track is the current one, however it got there.
+		const seen = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) if (entry.isIntersecting) mark(slides.indexOf(entry.target as HTMLElement));
+			},
+			{ root: track, threshold: 0.6 },
+		);
+		slides.forEach((slide) => seen.observe(slide));
+
+		gallery.querySelector<HTMLElement>('.controls')!.hidden = false;
+	}
+</script>
+
+<style>
+	.gallery {
+		/* Room for the frame's shadow, which the scroller would otherwise clip. */
+		--shadow-room: 2.5rem;
+	}
+
+	.controls {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1.25rem;
+	}
+	.controls[hidden] {
+		display: none;
+	}
+
+	.tabs {
+		display: none;
+		flex-wrap: wrap;
+		gap: 0.25rem 1.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.tabs button {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.45rem;
+		padding: 0.35rem 0 0.4rem;
+		border: 0;
+		border-bottom: 2px solid transparent;
+		background: none;
+		color: var(--sl-color-gray-3);
+		font: inherit;
+		font-size: 0.95rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition:
+			color 0.15s,
+			border-color 0.15s;
+	}
+	.tabs button:hover {
+		color: var(--sl-color-white);
+	}
+	.tabs button[aria-current='true'] {
+		border-bottom-color: var(--sl-color-text-accent);
+		color: var(--sl-color-white);
+	}
+	.num {
+		color: var(--sl-color-text-accent);
+		font-family: var(--sl-font-mono);
+		font-size: 0.75rem;
+		font-weight: 400;
+	}
+
+	.count {
+		margin: 0;
+		color: var(--sl-color-gray-3);
+		font-family: var(--sl-font-mono);
+		font-size: 0.85rem;
+	}
+	.count span {
+		color: var(--sl-color-text-accent);
+	}
+
+	.arrows {
+		display: flex;
+		gap: 0.5rem;
+		margin-inline-start: auto;
+	}
+	.arrows button {
+		display: grid;
+		place-items: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		padding: 0;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 999px;
+		background: none;
+		color: var(--sl-color-white);
+		cursor: pointer;
+		transition:
+			border-color 0.15s,
+			opacity 0.15s;
+	}
+	.arrows button:hover:not(:disabled) {
+		border-color: var(--sl-color-text-accent);
+	}
+	.arrows button:disabled {
+		opacity: 0.35;
+		cursor: default;
+	}
+	.arrows svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	@media (min-width: 50rem) {
+		.tabs {
+			display: flex;
+		}
+		.count {
+			display: none;
+		}
+	}
+
+	.track {
+		display: flex;
+		gap: 1.5rem;
+		margin-bottom: calc(-1 * var(--shadow-room));
+		padding-bottom: var(--shadow-room);
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+	}
+	.track::-webkit-scrollbar {
+		display: none;
+	}
+	.track:focus-visible {
+		outline: 2px solid var(--sl-color-text-accent);
+		outline-offset: 4px;
+		border-radius: 0.75rem;
+	}
+	.slide {
+		flex: 0 0 100%;
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+	}
+
+	.slide a {
+		color: var(--sl-color-text-accent);
+		font-weight: 600;
+		white-space: nowrap;
+		text-underline-offset: 0.2em;
+	}
+</style>

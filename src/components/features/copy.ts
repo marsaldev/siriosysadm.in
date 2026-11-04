@@ -10,8 +10,9 @@ type Category = {
 	link?: string;
 	anchor?: string;
 	more?: string;
-	/** A screenshot of the panel: src/assets/screenshots/<name>-<theme>-<locale>.png. */
-	shot?: { name: string; alt: string; caption: string };
+	/** A screenshot of the panel: src/assets/screenshots/<name>-<theme>-<locale>.png. The label names
+	 * it in the home page's carousel. */
+	shot?: { name: string; label: string; alt: string; caption: string };
 	items: Item[];
 };
 
@@ -32,6 +33,7 @@ export const features: Record<
 				more: 'Image updates',
 				shot: {
 					name: 'container',
+					label: 'Docker',
 					alt: 'The blog-web container: CPU, memory, network and disk, with its access log streaming live, and the tabs for the terminal, configuration and environment.',
 					caption: 'A container’s page: live stats and logs, a terminal, its configuration.',
 				},
@@ -90,6 +92,7 @@ export const features: Record<
 				more: 'Domains and sites',
 				shot: {
 					name: 'site',
+					label: 'Sites',
 					alt: 'The shop site: two domains with HTTPS, a public route and an /admin route protected by the Staff access list, with the list’s two users.',
 					caption: 'A site: its domains, its routes and the access lists that guard them.',
 				},
@@ -165,6 +168,7 @@ export const features: Record<
 				more: 'Pipelines',
 				shot: {
 					name: 'run',
+					label: 'Pipelines',
 					alt: 'A successful run of the Deploy API pipeline: commit, duration and trigger, and the end of its log, from the Docker build to the container being replaced.',
 					caption: 'A pipeline run, with its full log.',
 				},
@@ -219,6 +223,7 @@ export const features: Record<
 				more: 'Backups',
 				shot: {
 					name: 'backups',
+					label: 'Backups',
 					alt: 'The Shop nightly backup plan: every day at 03:00, its snapshots and the contents of the latest, split into database dumps and Docker volumes.',
 					caption: 'A backup plan: snapshots to browse, download and restore.',
 				},
@@ -302,6 +307,7 @@ export const features: Record<
 				more: 'System packages',
 				shot: {
 					name: 'ports',
+					label: 'Host',
 					alt: 'The Ports page: a warning about the panel reachable over plain HTTP, the listening ports with their exposure and owner, and the fail2ban status.',
 					caption: 'Listening ports, with the warnings that matter.',
 				},
@@ -466,6 +472,7 @@ export const features: Record<
 				more: 'Aggiornamento delle immagini',
 				shot: {
 					name: 'container',
+					label: 'Docker',
 					alt: 'Il container blog-web: processore, memoria, rete e disco, con il log degli accessi in diretta e le schede per terminale, configurazione e ambiente.',
 					caption: 'La pagina di un container: statistiche e log in diretta, un terminale, la sua configurazione.',
 				},
@@ -524,6 +531,7 @@ export const features: Record<
 				more: 'Domini e siti',
 				shot: {
 					name: 'site',
+					label: 'Siti',
 					alt: 'Il sito shop: due domini in HTTPS, una rotta pubblica e una rotta /admin protetta dalla lista d’accesso Staff, con i due utenti della lista.',
 					caption: 'Un sito: i suoi domini, le sue rotte e le liste d’accesso che le proteggono.',
 				},
@@ -599,6 +607,7 @@ export const features: Record<
 				more: 'Pipeline',
 				shot: {
 					name: 'run',
+					label: 'Pipeline',
 					alt: 'Un’esecuzione riuscita della pipeline Deploy API: commit, durata e avvio, e la fine del log, dalla build Docker alla sostituzione del container.',
 					caption: 'Un’esecuzione di una pipeline, con il log completo.',
 				},
@@ -653,6 +662,7 @@ export const features: Record<
 				more: 'Backup',
 				shot: {
 					name: 'backups',
+					label: 'Backup',
 					alt: 'Il piano di backup Shop nightly: ogni giorno alle 03:00, i suoi snapshot e il contenuto dell’ultimo, diviso in dump dei database e volumi Docker.',
 					caption: 'Un piano di backup: snapshot da sfogliare, scaricare e ripristinare.',
 				},
@@ -736,6 +746,7 @@ export const features: Record<
 				more: 'Pacchetti di sistema',
 				shot: {
 					name: 'ports',
+					label: 'Host',
 					alt: 'La pagina Porte: un avviso sul pannello raggiungibile in HTTP in chiaro, le porte in ascolto con esposizione e proprietario, e lo stato di fail2ban.',
 					caption: 'Le porte in ascolto, con gli avvisi che contano.',
 				},

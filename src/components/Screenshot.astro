@@ -29,7 +29,13 @@ const widths = [720, 1080, 1440, 2160, 2880];
 		<Image class="dark" src={pick('dark')} {alt} {widths} {sizes} format="webp" quality={82} loading="lazy" />
 		<Image class="light" src={pick('light')} {alt} {widths} {sizes} format="webp" quality={82} loading="lazy" />
 	</div>
-	{caption && <figcaption>{caption}</figcaption>}
+	{
+		(caption || Astro.slots.has('default')) && (
+			<figcaption>
+				{caption} <slot />
+			</figcaption>
+		)
+	}
 </figure>
 
 <style>

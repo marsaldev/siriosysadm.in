@@ -1,9 +1,9 @@
 ---
 // Everything on the home page below the hero. Copy in copy.ts, both locales.
 import { betaMailto } from '../../beta.mjs';
-import Screenshot from '../Screenshot.astro';
 import { features, featuresUrl } from '../features/copy';
 import { copy, docsUrl, localeOf } from './copy';
+import Gallery from './Gallery.astro';
 
 const locale = localeOf(Astro.locals.starlightRoute.lang);
 const t = copy[locale];
@@ -14,13 +14,7 @@ const sections = features[locale].categories;
 	<p class="lead">{t.lead}</p>
 
 	<div class="panel">
-		<Screenshot
-			name="overview"
-			{locale}
-			alt={t.shot.alt}
-			caption={t.shot.caption}
-			sizes="(min-width: 80rem) 72rem, calc(100vw - 2rem)"
-		/>
+		<Gallery />
 	</div>
 
 	<section class="does" aria-labelledby="does">

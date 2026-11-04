@@ -19,7 +19,16 @@ export const copy = {
 		},
 		lead:
 			'Sirio is a single Go binary that runs as a systemd service on the machine it administers, and manages it through the Docker socket. The panel, the API and the database are all inside it: nothing to deploy alongside, no agent, no cluster. It’s made for the server that hosts a handful of sites and applications, the one you’d otherwise look after over SSH.',
+		gallery: {
+			label: 'Screenshots of the panel',
+			slide: 'Screenshot',
+			of: 'of',
+			prev: 'Previous screenshot',
+			next: 'Next screenshot',
+			more: 'In the features',
+		},
 		shot: {
+			label: 'Overview',
 			alt: 'The panel’s overview: every container drawn as a star, CPU, memory, disk and uptime of the host, the running containers and the latest deploys.',
 			caption: 'The overview: the host, its containers and the latest deploys, in the theme you’re reading this site in.',
 		},
@@ -151,7 +160,16 @@ export const copy = {
 		},
 		lead:
 			'Sirio è un singolo binario Go che gira come servizio systemd sulla macchina che amministra, e la gestisce attraverso il socket di Docker. Pannello, API e database stanno tutti lì dentro: niente da installare accanto, nessun agente, nessun cluster. È pensato per il server che ospita una manciata di siti e applicazioni, quello che altrimenti curi via SSH.',
+		gallery: {
+			label: 'Schermate del pannello',
+			slide: 'Schermata',
+			of: 'di',
+			prev: 'Schermata precedente',
+			next: 'Schermata successiva',
+			more: 'Nelle funzionalità',
+		},
 		shot: {
+			label: 'Panoramica',
 			alt: 'La panoramica del pannello: ogni container disegnato come una stella, processore, memoria, disco e attività dell’host, i container accesi e gli ultimi deploy.',
 			caption: 'La panoramica: l’host, i suoi container e gli ultimi deploy, nel tema con cui stai leggendo questo sito.',
 		},
