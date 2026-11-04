@@ -3,6 +3,7 @@
 // copy.ts, both locales.
 import { betaMailto } from '../../beta.mjs';
 import { copy, docsUrl, localeOf } from '../home/copy';
+import Screenshot from '../Screenshot.astro';
 import { features } from './copy';
 
 const locale = localeOf(Astro.locals.starlightRoute.lang);
@@ -34,7 +35,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 	{
 		t.categories.map((cat, i) => (
-			<section class="category" id={cat.id} aria-labelledby={`${cat.id}-title`}>
+			<section class:list={['category', { 'has-shot': cat.shot }]} id={cat.id} aria-labelledby={`${cat.id}-title`}>
 				<header>
 					<span class="num" aria-hidden="true">
 						{pad(i + 1)}
@@ -43,6 +44,17 @@ const pad = (n: number) => String(n).padStart(2, '0');
 					<p>{cat.summary}</p>
 					{cat.link && <a href={docsUrl(locale, cat.link, cat.anchor)}>{cat.more}</a>}
 				</header>
+				{cat.shot && (
+					<div class="shot">
+						<Screenshot
+							name={cat.shot.name}
+							{locale}
+							alt={cat.shot.alt}
+							caption={cat.shot.caption}
+							sizes="(min-width: 80rem) 56rem, (min-width: 50rem) calc(100vw - 22rem), calc(100vw - 2rem)"
+						/>
+					</div>
+				)}
 				<dl>
 					{cat.items.map((item) => (
 						<div class="item">
@@ -206,6 +218,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		}
 		dl {
 			grid-template-columns: 1fr 1fr;
+		}
+		/* With a screenshot, the intro stays on the left of both: the picture, then the features. */
+		.has-shot header {
+			grid-row: span 2;
 		}
 	}
 

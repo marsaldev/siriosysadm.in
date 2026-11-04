@@ -10,6 +10,8 @@ type Category = {
 	link?: string;
 	anchor?: string;
 	more?: string;
+	/** A screenshot of the panel: src/assets/screenshots/<name>-<theme>-<locale>.png. */
+	shot?: { name: string; alt: string; caption: string };
 	items: Item[];
 };
 
@@ -28,6 +30,11 @@ export const features: Record<
 				summary: 'The containers on the host and everything around them, without opening a terminal.',
 				link: 'image-updates',
 				more: 'Image updates',
+				shot: {
+					name: 'container',
+					alt: 'The blog-web container: CPU, memory, network and disk, with its access log streaming live, and the tabs for the terminal, configuration and environment.',
+					caption: 'A container’s page: live stats and logs, a terminal, its configuration.',
+				},
 				items: [
 					{
 						title: 'The host at a glance',
@@ -81,6 +88,11 @@ export const features: Record<
 				summary: 'A site groups domains, containers, pipelines, backups and SFTP. A managed Caddy proxy puts it online.',
 				link: 'domains',
 				more: 'Domains and sites',
+				shot: {
+					name: 'site',
+					alt: 'The shop site: two domains with HTTPS, a public route and an /admin route protected by the Staff access list, with the list’s two users.',
+					caption: 'A site: its domains, its routes and the access lists that guard them.',
+				},
 				items: [
 					{
 						title: 'Sites',
@@ -151,6 +163,11 @@ export const features: Record<
 				summary: 'From git push to running containers, every step logged.',
 				link: 'pipeline',
 				more: 'Pipelines',
+				shot: {
+					name: 'run',
+					alt: 'A successful run of the Deploy API pipeline: commit, duration and trigger, and the end of its log, from the Docker build to the container being replaced.',
+					caption: 'A pipeline run, with its full log.',
+				},
 				items: [
 					{
 						title: 'Repositories',
@@ -200,6 +217,11 @@ export const features: Record<
 				summary: 'Encrypted, scheduled restic backups of every site, and restores from the panel.',
 				link: 'backups',
 				more: 'Backups',
+				shot: {
+					name: 'backups',
+					alt: 'The Shop nightly backup plan: every day at 03:00, its snapshots and the contents of the latest, split into database dumps and Docker volumes.',
+					caption: 'A backup plan: snapshots to browse, download and restore.',
+				},
 				items: [
 					{
 						title: 'Destinations',
@@ -278,6 +300,11 @@ export const features: Record<
 				summary: 'Packages, ports and power for the machine under the containers.',
 				link: 'packages',
 				more: 'System packages',
+				shot: {
+					name: 'ports',
+					alt: 'The Ports page: a warning about the panel reachable over plain HTTP, the listening ports with their exposure and owner, and the fail2ban status.',
+					caption: 'Listening ports, with the warnings that matter.',
+				},
 				items: [
 					{
 						title: 'System packages',
@@ -437,6 +464,11 @@ export const features: Record<
 				summary: 'I container dell’host e tutto quello che gli sta intorno, senza aprire un terminale.',
 				link: 'image-updates',
 				more: 'Aggiornamento delle immagini',
+				shot: {
+					name: 'container',
+					alt: 'Il container blog-web: processore, memoria, rete e disco, con il log degli accessi in diretta e le schede per terminale, configurazione e ambiente.',
+					caption: 'La pagina di un container: statistiche e log in diretta, un terminale, la sua configurazione.',
+				},
 				items: [
 					{
 						title: 'L’host a colpo d’occhio',
@@ -490,6 +522,11 @@ export const features: Record<
 				summary: 'Un sito raggruppa domini, container, pipeline, backup e SFTP. Un proxy Caddy gestito lo mette online.',
 				link: 'domains',
 				more: 'Domini e siti',
+				shot: {
+					name: 'site',
+					alt: 'Il sito shop: due domini in HTTPS, una rotta pubblica e una rotta /admin protetta dalla lista d’accesso Staff, con i due utenti della lista.',
+					caption: 'Un sito: i suoi domini, le sue rotte e le liste d’accesso che le proteggono.',
+				},
 				items: [
 					{
 						title: 'Siti',
@@ -560,6 +597,11 @@ export const features: Record<
 				summary: 'Dal git push ai container in esecuzione, con ogni passo registrato.',
 				link: 'pipeline',
 				more: 'Pipeline',
+				shot: {
+					name: 'run',
+					alt: 'Un’esecuzione riuscita della pipeline Deploy API: commit, durata e avvio, e la fine del log, dalla build Docker alla sostituzione del container.',
+					caption: 'Un’esecuzione di una pipeline, con il log completo.',
+				},
 				items: [
 					{
 						title: 'Repository',
@@ -609,6 +651,11 @@ export const features: Record<
 				summary: 'Backup restic cifrati e pianificati di ogni sito, e ripristini dal pannello.',
 				link: 'backups',
 				more: 'Backup',
+				shot: {
+					name: 'backups',
+					alt: 'Il piano di backup Shop nightly: ogni giorno alle 03:00, i suoi snapshot e il contenuto dell’ultimo, diviso in dump dei database e volumi Docker.',
+					caption: 'Un piano di backup: snapshot da sfogliare, scaricare e ripristinare.',
+				},
 				items: [
 					{
 						title: 'Destinazioni',
@@ -687,6 +734,11 @@ export const features: Record<
 				summary: 'Pacchetti, porte e alimentazione della macchina sotto i container.',
 				link: 'packages',
 				more: 'Pacchetti di sistema',
+				shot: {
+					name: 'ports',
+					alt: 'La pagina Porte: un avviso sul pannello raggiungibile in HTTP in chiaro, le porte in ascolto con esposizione e proprietario, e lo stato di fail2ban.',
+					caption: 'Le porte in ascolto, con gli avvisi che contano.',
+				},
 				items: [
 					{
 						title: 'Pacchetti di sistema',
