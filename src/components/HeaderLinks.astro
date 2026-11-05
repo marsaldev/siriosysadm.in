@@ -1,22 +1,43 @@
 ---
-// Replaces Starlight's SocialIcons, the only slot in the header's right-hand group: the link to
-// the features page, then Starlight's own icons (none configured today). Starlight shows the
-// same component in the mobile menu's footer, so the link is there on phones too.
+// Replaces Starlight's SocialIcons, the only slot in the header's right-hand group: links to the
+// features page, the docs and the changelog, then Starlight's own icons (none configured today).
+// Starlight shows the same component in the mobile menu's footer, so the links are there on
+// phones too.
 import Default from '@astrojs/starlight/components/SocialIcons.astro';
+import { changelogUrl } from './changelog/copy';
 import { featuresUrl } from './features/copy';
-import { localeOf } from './home/copy';
+import { docsUrl, localeOf } from './home/copy';
 
 const route = Astro.locals.starlightRoute;
 const locale = localeOf(route.lang);
-const href = featuresUrl(locale);
-const label = locale === 'it' ? 'Funzionalità' : 'Features';
-const current = route.id === 'features' || route.id === 'it/features';
+const id = locale === 'it' ? route.id.replace(/^it\//, '') : route.id;
+const it = locale === 'it';
+
+const links = [
+	{ href: featuresUrl(locale), label: it ? 'Funzionalità' : 'Features', current: id === 'features' },
+	{ href: docsUrl(locale, 'installation'), label: it ? 'Documentazione' : 'Docs', current: id.startsWith('docs/') },
+	{ href: changelogUrl(locale), label: 'Changelog', current: id === 'changelog' },
+];
 ---
 
-<a class="header-link" href={href} aria-current={current ? 'page' : undefined}>{label}</a>
+<nav class="header-links" aria-label={it ? 'Sezioni del sito' : 'Site sections'}>
+	{
+		links.map((link) => (
+			<a class="header-link" href={link.href} aria-current={link.current ? 'page' : undefined}>
+				{link.label}
+			</a>
+		))
+	}
+</nav>
 <Default />
 
 <style>
+	.header-links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1.25rem;
+	}
 	.header-link {
 		color: var(--sl-color-gray-2);
 		font-size: var(--sl-text-sm);
