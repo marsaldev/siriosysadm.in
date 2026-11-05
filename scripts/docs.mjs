@@ -19,6 +19,7 @@ export const PAGES = [
 	{ slug: 'image-updates', en: 'image-updates.md', it: 'aggiornamento-immagini.md' },
 	{ slug: 'packages', en: 'packages.md', it: 'pacchetti.md' },
 	{ slug: 'security', en: 'security.md', it: 'sicurezza.md' },
+	{ slug: 'notifications', en: 'notifications.md', it: 'notifiche.md' },
 ];
 
 export const LOCALES = {

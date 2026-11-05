@@ -53,7 +53,7 @@ export default defineConfig({
 				{
 					label: 'The server',
 					translations: { it: 'Il server' },
-					items: ['docs/packages', 'docs/security'],
+					items: ['docs/packages', 'docs/security', 'docs/notifications'],
 				},
 			],
 		}),
