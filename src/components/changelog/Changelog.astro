@@ -1,0 +1,339 @@
+---
+// The changelog page: the releases grouped by month, newest first, each with what changed. Copy in
+// copy.ts, both locales.
+import { betaMailto } from '../../beta.mjs';
+import { copy, docsUrl, localeOf } from '../home/copy';
+import { changelog, releases, type Release } from './copy';
+
+const locale = localeOf(Astro.locals.starlightRoute.lang);
+const t = changelog[locale];
+const end = copy[locale].end;
+const lang = locale === 'it' ? 'it-IT' : 'en-GB';
+
+// Dates are calendar days: read and format them in UTC so no time zone moves them.
+const day = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const month = new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const capitalize = (s: string) => s.charAt(0).toLocaleUpperCase(lang) + s.slice(1);
+
+const months: { id: string; label: string; releases: Release[] }[] = [];
+for (const release of releases) {
+	const id = release.date.slice(0, 7);
+	let group = months.at(-1);
+	if (group?.id !== id) {
+		group = { id, label: capitalize(month.format(new Date(`${id}-01`))), releases: [] };
+		months.push(group);
+	}
+	group.releases.push(release);
+}
+const latest = releases[0].version;
+const anchor = (version: string) => `v${version.replaceAll('.', '-')}`;
+---
+
+<div class="changelog not-content">
+	<p class="lead">{t.lead}</p>
+
+	<nav class="index" aria-label={t.months}>
+		<ol>
+			{
+				months.map((m) => (
+					<li>
+						<a href={`#m-${m.id}`}>
+							<span class="name">{m.label}</span>
+							<span class="range">
+								v{m.releases.at(-1)!.version} – v{m.releases[0].version}
+							</span>
+							<span class="count">
+								{m.releases.length} <span class="sr-only">{t.releases}</span>
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ol>
+	</nav>
+
+	{
+		months.map((m) => (
+			<section class="month" id={`m-${m.id}`} aria-labelledby={`m-${m.id}-title`}>
+				<h2 id={`m-${m.id}-title`}>{m.label}</h2>
+				<ol class="releases">
+					{m.releases.map((r) => (
+						<li class="release" id={anchor(r.version)}>
+							<header>
+								<a class="version" href={`#${anchor(r.version)}`}>
+									v{r.version}
+								</a>
+								<time datetime={r.date}>{day.format(new Date(r.date))}</time>
+								{r.version === latest && <span class="latest">{t.latest}</span>}
+							</header>
+							<div class="body">
+								{r.title && <h3>{r.title[locale]}</h3>}
+								<ul class="changes">
+									{r.changes.map((c) => (
+										<li>
+											<span class:list={['kind', c.kind]}>{t.kinds[c.kind]}</span>
+											<p>
+												{c.text[locale]}
+												{c.link && (
+													<>
+														{' '}
+														<a href={docsUrl(locale, c.link, c.anchor?.[locale])}>{c.more?.[locale]}</a>
+													</>
+												)}
+											</p>
+										</li>
+									))}
+								</ul>
+							</div>
+						</li>
+					))}
+				</ol>
+			</section>
+		))
+	}
+
+	<section class="end">
+		<svg class="end-star" viewBox="-44 -44 88 88" aria-hidden="true">
+			<path d="M0 -40 L7 -9 L40 0 L7 9 L0 40 L-7 9 L-40 0 L-7 -9 Z" />
+		</svg>
+		<h2>{end.title}</h2>
+		<p>{end.text}</p>
+		<div class="actions">
+			<a class="button primary" href={betaMailto(locale)}>{end.beta}</a>
+			<a class="button secondary" href={docsUrl(locale, 'installation')}>{t.docs}</a>
+		</div>
+	</section>
+</div>
+
+<style>
+	.changelog {
+		--rule: var(--sl-color-hairline);
+		--muted: var(--sl-color-gray-2);
+		--strong: var(--sl-color-white);
+		color: var(--muted);
+	}
+
+	h2 {
+		margin: 0;
+		color: var(--strong);
+		font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.3rem);
+		font-stretch: 125%;
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		text-wrap: balance;
+	}
+
+	a {
+		color: var(--sl-color-text-accent);
+		font-weight: 600;
+		text-underline-offset: 0.2em;
+	}
+	a:focus-visible {
+		outline: 2px solid var(--sl-color-text-accent);
+		outline-offset: 3px;
+	}
+
+	.lead {
+		max-width: 62ch;
+		margin: 0;
+		color: var(--strong);
+		font-size: clamp(1.1rem, 1rem + 0.45vw, 1.3rem);
+		line-height: 1.5;
+	}
+
+	/* The index: every month with its range of versions and how many releases it holds. */
+	.index ol {
+		display: grid;
+		margin: 2.5rem 0 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--rule);
+	}
+	.index li {
+		border-bottom: 1px solid var(--rule);
+	}
+	.index a {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 0.9rem;
+		padding: 0.7rem 0.25rem;
+		color: var(--strong);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.index a:hover .name {
+		color: var(--sl-color-text-accent);
+	}
+	.index .name {
+		flex: 1;
+	}
+	.index .range,
+	.index .count {
+		color: var(--sl-color-gray-3);
+		font-family: var(--sl-font-mono);
+		font-size: 0.8rem;
+		font-weight: 400;
+	}
+	@media (min-width: 40rem) {
+		.index ol {
+			grid-template-columns: repeat(3, 1fr);
+			column-gap: 2.5rem;
+		}
+	}
+
+	.month {
+		margin-top: clamp(3.5rem, 2.5rem + 3vw, 5.5rem);
+		scroll-margin-top: calc(var(--sl-nav-height) + 1rem);
+	}
+
+	.releases {
+		margin: 1.5rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/* A release: version and date on the left, what changed on the right. */
+	.release {
+		display: grid;
+		gap: 0.75rem 3rem;
+		padding-block: 1.75rem;
+		border-top: 1px solid var(--rule);
+		scroll-margin-top: calc(var(--sl-nav-height) + 1rem);
+	}
+	.release header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.35rem 0.8rem;
+	}
+	.version {
+		color: var(--strong);
+		font-family: var(--sl-font-mono);
+		font-size: 1.15rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.version:hover {
+		color: var(--sl-color-text-accent);
+	}
+	time {
+		color: var(--sl-color-gray-3);
+		font-family: var(--sl-font-mono);
+		font-size: 0.8rem;
+	}
+	.latest {
+		padding: 0.1rem 0.55rem;
+		border-radius: 999px;
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	h3 {
+		margin: 0 0 0.85rem;
+		color: var(--strong);
+		font-size: 1.15rem;
+		font-weight: 700;
+		line-height: 1.3;
+	}
+
+	.changes {
+		display: grid;
+		gap: 0.85rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.changes li {
+		display: grid;
+		grid-template-columns: 6.75rem 1fr;
+		align-items: baseline;
+		gap: 0.25rem 1rem;
+	}
+	.changes p {
+		max-width: 68ch;
+		margin: 0;
+		line-height: 1.6;
+	}
+
+	/* What kind of change: the new things in the accent colour, the rest quieter. */
+	.kind {
+		justify-self: start;
+		padding: 0.05rem 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 999px;
+		color: var(--sl-color-gray-2);
+		font-family: var(--sl-font-mono);
+		font-size: 0.7rem;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+	.kind.new {
+		border-color: var(--sl-color-text-accent);
+		color: var(--sl-color-text-accent);
+	}
+	.kind.maintenance {
+		color: var(--sl-color-gray-3);
+	}
+
+	@media (max-width: 30rem) {
+		.changes li {
+			grid-template-columns: 1fr;
+		}
+	}
+	@media (min-width: 50rem) {
+		.release {
+			grid-template-columns: 11rem 1fr;
+		}
+		.release header {
+			flex-direction: column;
+			align-items: flex-start;
+			align-self: start;
+		}
+	}
+
+	/* Closing call to action, as on the home and features pages. */
+	.end {
+		display: grid;
+		justify-items: center;
+		gap: 1rem;
+		margin-top: clamp(4rem, 3rem + 4vw, 7rem);
+		padding-block: 3rem 1rem;
+		text-align: center;
+	}
+	.end-star {
+		width: 2.75rem;
+		height: 2.75rem;
+		fill: var(--sl-color-accent);
+	}
+	.end p {
+		max-width: 44ch;
+		margin: 0;
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+	}
+	.button {
+		padding: 0.7rem 1.35rem;
+		border-radius: 999px;
+		text-decoration: none;
+	}
+	.primary {
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+	}
+	.secondary {
+		border: 1px solid var(--sl-color-gray-4);
+		color: var(--strong);
+	}
+</style>
