@@ -103,6 +103,12 @@ export const copy = {
 						text: 'Permissions per section and per site, down to a single action: run a pipeline but not edit it, restore a backup, never delete a container. An activity log records who did what.',
 					},
 					{
+						title: 'Notifications',
+						text: 'A failed backup or deploy, a crashed container, a disk filling up: one message when it breaks and one when it recovers, by email, Slack, Discord or ntfy, to whoever may see it. Plus a daily summary of pending updates.',
+						link: 'notifications',
+						more: 'Notifications',
+					},
+					{
 						title: 'Updates itself',
 						text: 'By hand or automatically, up to patch, minor or major releases. Every release is signed, verified twice, and rolled back on its own if the new version doesn’t stay up.',
 						link: 'updates',
@@ -242,6 +248,12 @@ export const copy = {
 					{
 						title: 'Utenti e permessi',
 						text: 'Permessi per sezione e per sito, fino alla singola azione: lanciare una pipeline ma non modificarla, ripristinare un backup, non eliminare mai un container. Un registro delle attività tiene traccia di chi ha fatto cosa.',
+					},
+					{
+						title: 'Notifiche',
+						text: 'Un backup o un deploy fallito, un container in crash, un disco che si riempie: un messaggio quando si rompe e uno quando torna a posto, via email, Slack, Discord o ntfy, a chi può vederlo. In più un riepilogo giornaliero degli aggiornamenti in attesa.',
+						link: 'notifications',
+						more: 'Notifiche',
 					},
 					{
 						title: 'Si aggiorna da solo',

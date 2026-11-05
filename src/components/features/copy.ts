@@ -372,6 +372,57 @@ export const features: Record<
 				],
 			},
 			{
+				id: 'notifications',
+				title: 'Notifications',
+				summary: 'Hear about what needs attention, once, from whichever channel you read.',
+				link: 'notifications',
+				more: 'Notifications',
+				items: [
+					{
+						title: 'What it reports',
+						text: 'Failed backups and backups that stop running, failed deploys, containers that crash, run out of memory or turn unhealthy, disks filling up, and Sirio updates. Each one again when it recovers.',
+						link: 'notifications',
+						anchor: 'events',
+						more: 'Events',
+					},
+					{
+						title: 'Once per change',
+						text: 'One notification when something breaks and one when it works again, not one per check. A restart repeats nothing, and stops someone asked for or one-off containers don’t count.',
+					},
+					{
+						title: 'Daily summary',
+						text: 'Package updates with the security ones first, containers with a newer image and a new Sirio release, at the hour you choose. Sent only when something in it is new.',
+					},
+					{
+						title: 'Email, your way',
+						text: 'Through an SMTP relay (Gmail, Brevo and SMTP2GO filled in with one click), or delivered directly by Sirio and signed with a DKIM key it creates for you.',
+						link: 'notifications',
+						anchor: 'choosing-how-email-is-sent',
+						more: 'Choosing how email is sent',
+					},
+					{
+						title: 'Delivery diagnosis',
+						text: 'For direct delivery, a check of port 25, reverse DNS, SPF, DKIM and DMARC that sends nothing, and says what to fix.',
+					},
+					{
+						title: 'Slack, Discord and your phone',
+						text: 'A webhook that works as it is with Slack, Discord, Mattermost and Google Chat, or with a receiver of your own, and push notifications through ntfy.',
+					},
+					{
+						title: 'Follows the permissions',
+						text: 'Nobody hears about what the panel wouldn’t show them. Each user picks which categories reach them by email.',
+					},
+					{
+						title: 'The bell',
+						text: 'The latest notifications in the panel’s top bar, with the unread ones counted.',
+					},
+					{
+						title: 'Tests and deliveries',
+						text: 'Send a test to any mailbox and to each channel, see the latest deliveries with their errors. Failed sends are retried for up to a day.',
+					},
+				],
+			},
+			{
 				id: 'people',
 				title: 'Users and permissions',
 				summary: 'Several people on one panel, each with exactly the access they need.',
@@ -393,7 +444,7 @@ export const features: Record<
 					},
 					{
 						title: 'Activity log',
-						text: 'Who did what, when, on which resource and from where.',
+						text: 'Who did what, when, on which resource and from where, on its own page. Filter by user, action, text and dates, and keep scrolling back.',
 					},
 					{
 						title: 'Sessions',
@@ -811,6 +862,57 @@ export const features: Record<
 				],
 			},
 			{
+				id: 'notifications',
+				title: 'Notifiche',
+				summary: 'Sapere cosa richiede attenzione, una volta sola, dal canale che leggi.',
+				link: 'notifications',
+				more: 'Notifiche',
+				items: [
+					{
+						title: 'Cosa segnala',
+						text: 'Backup falliti e backup che smettono di partire, deploy falliti, container che vanno in crash, finiscono la memoria o risultano unhealthy, dischi che si riempiono e aggiornamenti di Sirio. E di nuovo quando tornano a posto.',
+						link: 'notifications',
+						anchor: 'eventi',
+						more: 'Eventi',
+					},
+					{
+						title: 'Una volta per cambiamento',
+						text: 'Una notifica quando qualcosa si rompe e una quando torna a funzionare, non una per controllo. Un riavvio non ripete nulla, e gli arresti richiesti o i container usa e getta non contano.',
+					},
+					{
+						title: 'Riepilogo giornaliero',
+						text: 'Aggiornamenti dei pacchetti con quelli di sicurezza in testa, container con un’immagine più recente e una nuova release di Sirio, all’ora che scegli. Inviato solo quando contiene qualcosa di nuovo.',
+					},
+					{
+						title: 'Email, come preferisci',
+						text: 'Tramite un relay SMTP (Gmail, Brevo e SMTP2GO compilati con un clic), o consegnate direttamente da Sirio e firmate con una chiave DKIM che crea per te.',
+						link: 'notifications',
+						anchor: 'scegliere-come-inviare-le-email',
+						more: 'Scegliere come inviare le email',
+					},
+					{
+						title: 'Diagnosi della consegna',
+						text: 'Per la consegna diretta, un controllo di porta 25, DNS inverso, SPF, DKIM e DMARC che non invia nulla, e dice cosa sistemare.',
+					},
+					{
+						title: 'Slack, Discord e il telefono',
+						text: 'Un webhook che funziona così com’è con Slack, Discord, Mattermost e Google Chat, o con un ricevitore tuo, e notifiche push tramite ntfy.',
+					},
+					{
+						title: 'Segue i permessi',
+						text: 'Nessuno viene avvisato di quello che il pannello non gli mostrerebbe. Ogni utente sceglie quali categorie ricevere via email.',
+					},
+					{
+						title: 'La campanella',
+						text: 'Le ultime notifiche nella barra in alto del pannello, con il conto di quelle non lette.',
+					},
+					{
+						title: 'Prove e consegne',
+						text: 'Invia una prova a qualunque casella e su ogni canale, guarda le ultime consegne con i loro errori. Gli invii falliti vengono ritentati per un giorno.',
+					},
+				],
+			},
+			{
 				id: 'people',
 				title: 'Utenti e permessi',
 				summary: 'Più persone sullo stesso pannello, ognuna con l’accesso che le serve, né più né meno.',
@@ -832,7 +934,7 @@ export const features: Record<
 					},
 					{
 						title: 'Registro delle attività',
-						text: 'Chi ha fatto cosa, quando, su quale risorsa e da dove.',
+						text: 'Chi ha fatto cosa, quando, su quale risorsa e da dove, in una pagina tutta sua. Filtra per utente, azione, testo e date, e risali quanto vuoi.',
 					},
 					{
 						title: 'Sessioni',
