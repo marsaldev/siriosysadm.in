@@ -377,6 +377,12 @@ export const features: Record<
 				summary: 'Hear about what needs attention, once, from whichever channel you read.',
 				link: 'notifications',
 				more: 'Notifications',
+				shot: {
+					name: 'notifications',
+					label: 'Notifications',
+					alt: 'The notification settings, with email sent through an SMTP relay, and the bell open on the latest notifications: a container down and running again, a disk filling up, a pipeline failed and working again, the updates summary.',
+					caption: 'Email through your relay, and the latest notifications under the bell.',
+				},
 				items: [
 					{
 						title: 'What it reports',
@@ -867,6 +873,12 @@ export const features: Record<
 				summary: 'Sapere cosa richiede attenzione, una volta sola, dal canale che leggi.',
 				link: 'notifications',
 				more: 'Notifiche',
+				shot: {
+					name: 'notifications',
+					label: 'Notifiche',
+					alt: 'Le impostazioni delle notifiche, con le email inviate tramite un relay SMTP, e la campanella aperta sulle ultime notifiche: un container giù e di nuovo in esecuzione, un disco quasi pieno, una pipeline fallita e di nuovo funzionante, il riepilogo degli aggiornamenti.',
+					caption: 'Le email tramite il tuo relay, e le ultime notifiche sotto la campanella.',
+				},
 				items: [
 					{
 						title: 'Cosa segnala',
