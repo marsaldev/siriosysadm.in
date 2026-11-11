@@ -64,6 +64,26 @@ const maintainerOnly: Change = {
 
 export const releases: Release[] = [
 	{
+		version: '0.21.1',
+		date: '2026-11-11',
+		changes: [
+			{
+				kind: 'fixed',
+				text: {
+					en: 'Updating to 0.21.0 no longer ends in a rollback: the installer failed when a file it reads, like the setup code that is gone once an administrator exists, was missing. A fresh install without a self-signed certificate hit the same error.',
+					it: 'L’aggiornamento alla 0.21.0 non finisce più con un rollback: l’installer si fermava quando mancava un file che legge, come il codice di setup che sparisce una volta creato un amministratore. Anche una nuova installazione senza certificato autofirmato incontrava lo stesso errore.',
+				},
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'The job that upgrades all packages is now named “upgrade of all packages” instead of “complete”, which read as finished while it was still running.',
+					it: 'Il job che aggiorna tutti i pacchetti ora si chiama «aggiornamento di tutti i pacchetti» invece di «completo», che sembrava concluso mentre era ancora in corso.',
+				},
+			},
+		],
+	},
+	{
 		version: '0.21.0',
 		date: '2026-11-11',
 		title: { en: 'Security hardening', it: 'Rafforzamento della sicurezza' },
