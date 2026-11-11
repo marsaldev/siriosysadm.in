@@ -446,7 +446,14 @@ export const features: Record<
 					},
 					{
 						title: 'Per site, per action',
-						text: 'Give access to single sites, then take away individual actions: run a pipeline but not edit it, restore a backup, never delete a container.',
+						text: 'Give access to single sites, then take away individual actions: run a pipeline but not edit it, restore a backup, never open a terminal in a container.',
+					},
+					{
+						title: 'A site isn’t the server',
+						text: 'Site users can’t run shell steps, mount host folders or reach other sites’ volumes, networks and containers. Compose files of pipelines without host access are checked before they run; an administrator can grant it per pipeline.',
+						link: 'security',
+						anchor: 'what-a-site-permission-cant-do',
+						more: 'What a site permission can’t do',
 					},
 					{
 						title: 'Activity log',
@@ -482,11 +489,14 @@ export const features: Record<
 					},
 					{
 						title: 'Installer and wizard',
-						text: 'One script installs the service; a wizard creates the first administrator and installs Docker if needed.',
+						text: 'One script installs the service; a wizard, unlocked by a single-use setup code the installer prints, creates the first administrator and installs Docker if needed.',
 					},
 					{
 						title: 'HTTPS for the panel',
-						text: 'Behind your own Caddy or nginx, behind Sirio’s managed proxy, or with direct TLS.',
+						text: 'Encrypted from the first start, with a self-signed certificate whose fingerprint the installer prints. Then behind your own Caddy or nginx, behind Sirio’s managed proxy, or with direct TLS.',
+						link: 'installation',
+						anchor: '3-a-real-certificate',
+						more: 'A real certificate',
 					},
 					{
 						title: 'Self-update',
@@ -942,7 +952,14 @@ export const features: Record<
 					},
 					{
 						title: 'Per sito, per azione',
-						text: 'Dai accesso a singoli siti, poi togli le singole azioni: lanciare una pipeline ma non modificarla, ripristinare un backup, non eliminare mai un container.',
+						text: 'Dai accesso a singoli siti, poi togli le singole azioni: lanciare una pipeline ma non modificarla, ripristinare un backup, non aprire mai un terminale in un container.',
+					},
+					{
+						title: 'Un sito non è il server',
+						text: 'Gli utenti di un sito non possono eseguire step shell, montare cartelle dell’host né toccare volumi, reti e container di altri siti. I file Compose delle pipeline senza accesso all’host vengono controllati prima di partire; un amministratore può concederlo pipeline per pipeline.',
+						link: 'security',
+						anchor: 'cosa-un-permesso-su-un-sito-non-consente',
+						more: 'Cosa non può fare il permesso su un sito',
 					},
 					{
 						title: 'Registro delle attività',
@@ -978,11 +995,14 @@ export const features: Record<
 					},
 					{
 						title: 'Installer e wizard',
-						text: 'Uno script installa il servizio; un wizard crea il primo amministratore e, se serve, installa Docker.',
+						text: 'Uno script installa il servizio; un wizard, sbloccato da un codice di setup monouso che l’installer stampa, crea il primo amministratore e, se serve, installa Docker.',
 					},
 					{
 						title: 'HTTPS per il pannello',
-						text: 'Dietro il tuo Caddy o nginx, dietro il proxy gestito da Sirio, o con TLS diretto.',
+						text: 'Cifrato fin dal primo avvio, con un certificato autofirmato di cui l’installer stampa l’impronta. Poi dietro il tuo Caddy o nginx, dietro il proxy gestito da Sirio, o con TLS diretto.',
+						link: 'installation',
+						anchor: '3-un-certificato-vero',
+						more: 'Un certificato vero',
 					},
 					{
 						title: 'Si aggiorna da solo',

@@ -64,6 +64,88 @@ const maintainerOnly: Change = {
 
 export const releases: Release[] = [
 	{
+		version: '0.21.0',
+		date: '2026-11-11',
+		title: { en: 'Security hardening', it: 'Rafforzamento della sicurezza' },
+		changes: [
+			{
+				kind: 'improved',
+				text: {
+					en: 'A permission on a site is no longer access to the server: shell steps, host folders mounted into containers and other sites’ volumes or networks need an administrator or the Docker permission.',
+					it: 'Il permesso su un sito non è più accesso al server: step shell, cartelle dell’host montate nei container e volumi o reti di altri siti richiedono un amministratore o il permesso Docker.',
+				},
+				link: 'security',
+				anchor: { en: 'what-a-site-permission-cant-do', it: 'cosa-un-permesso-su-un-sito-non-consente' },
+				more: { en: 'What a site permission can’t do', it: 'Cosa non può fare il permesso su un sito' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'The Compose files of pipelines are checked before they run: only known keys, paths inside the checkout, resources of the pipeline’s own site, no include or extends. An administrator can trust a pipeline with the host to skip the check.',
+					it: 'I file Compose delle pipeline vengono controllati prima di partire: solo chiavi note, percorsi dentro il checkout, risorse del sito della pipeline, niente include né extends. Un amministratore può dare a una pipeline l’accesso all’host per saltare il controllo.',
+				},
+				link: 'security',
+				anchor: { en: 'compose-files-and-host-access', it: 'file-compose-e-accesso-allhost' },
+				more: { en: 'Compose files and host access', it: 'File Compose e accesso all’host' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Proxy routes can only point to the site’s own containers, or ones the user may act on; a host:port destination needs the Proxy permission. A pipeline needs access to its repository.',
+					it: 'Le rotte del proxy possono puntare solo ai container del sito, o a quelli su cui l’utente può agire; una destinazione host:porta richiede il permesso Proxy. Una pipeline richiede l’accesso al suo repository.',
+				},
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Git over SSH trusts only the host key you confirm when saving the repository; existing repositories pin it on their first run.',
+					it: 'Git via SSH si fida solo della chiave dell’host che confermi salvando il repository; quelli esistenti la fissano alla prima esecuzione.',
+				},
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'The terminal in a container is a permission of its own, separate from viewing logs and state.',
+					it: 'Il terminale in un container è un permesso a sé, separato dalla vista di log e stato.',
+				},
+			},
+			{
+				kind: 'new',
+				text: {
+					en: 'The first-run wizard asks for a single-use setup code, printed by the installer and written to the log, so whoever reaches the port first can’t create the administrator.',
+					it: 'Il wizard del primo avvio chiede un codice di setup monouso, stampato dall’installer e scritto nel log, così chi raggiunge per primo la porta non può creare l’amministratore.',
+				},
+				link: 'installation',
+				anchor: { en: '4-first-login', it: '4-primo-accesso' },
+				more: { en: 'First login', it: 'Primo accesso' },
+			},
+			{
+				kind: 'new',
+				text: {
+					en: 'Listening beyond localhost without a certificate, the panel serves HTTPS with a self-signed certificate whose fingerprint the installer prints, and redirects plain HTTP to it. Installations on 0.0.0.0 switch to https:// on this update.',
+					it: 'In ascolto oltre localhost senza certificato, il pannello serve HTTPS con un certificato autofirmato di cui l’installer stampa l’impronta, e reindirizza l’HTTP semplice. Le installazioni su 0.0.0.0 passano a https:// con questo aggiornamento.',
+				},
+				link: 'installation',
+				anchor: { en: '3-a-real-certificate', it: '3-un-certificato-vero' },
+				more: { en: 'A real certificate', it: 'Un certificato vero' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'The installer always shows the address it detected and asks you to confirm it or type the right one, so the printed URL is correct behind a floating IP, a load balancer or a NAT.',
+					it: 'L’installer mostra sempre l’indirizzo rilevato e chiede di confermarlo o di scrivere quello giusto, così l’URL stampato è corretto dietro un IP flottante, un load balancer o un NAT.',
+				},
+			},
+			{
+				kind: 'maintenance',
+				text: {
+					en: 'Updated dependencies, and a vulnerability audit run before every release.',
+					it: 'Dipendenze aggiornate e un controllo delle vulnerabilità prima di ogni release.',
+				},
+			},
+		],
+	},
+	{
 		version: '0.20.1',
 		date: '2026-11-05',
 		changes: [
