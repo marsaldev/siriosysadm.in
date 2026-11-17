@@ -206,6 +206,10 @@ export const features: Record<
 						text: 'Overrides are reapplied, the proxy is updated, and the containers Compose started are assigned to the pipeline’s site.',
 					},
 					{
+						title: 'Clone a pipeline',
+						text: 'The copy icon opens the editor filled in with an existing pipeline. Saving creates a new one with its own webhook secret, checked like any other.',
+					},
+					{
 						title: 'Export and import',
 						text: 'Move pipelines between servers as a JSON file, without IDs or secrets; the import matches repositories and sites for you.',
 					},
@@ -710,6 +714,10 @@ export const features: Record<
 					{
 						title: 'Dopo il deploy',
 						text: 'Le sovrascritture vengono riapplicate, il proxy aggiornato, e i container avviati da Compose assegnati al sito della pipeline.',
+					},
+					{
+						title: 'Clona una pipeline',
+						text: 'L’icona di copia apre l’editor già compilato con una pipeline esistente. Salvando se ne crea una nuova, con il suo segreto del webhook, controllata come ogni altra.',
 					},
 					{
 						title: 'Esporta e importa',

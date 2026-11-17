@@ -64,6 +64,112 @@ const maintainerOnly: Change = {
 
 export const releases: Release[] = [
 	{
+		version: '0.23.0',
+		date: '2026-11-17',
+		changes: [
+			{
+				kind: 'new',
+				text: {
+					en: 'A pipeline can be cloned from the Pipelines page: the copy icon on a row opens the editor filled in with its repository, site, trigger and steps, with a free name proposed. Saving is an ordinary creation, so a new webhook secret is issued and the usual permission checks apply.',
+					it: 'Una pipeline si può clonare dalla pagina Pipeline: l’icona di copia su una riga apre l’editor già compilato con repository, sito, trigger e step, con un nome libero già proposto. Il salvataggio è una creazione normale, quindi viene emesso un nuovo segreto del webhook e valgono i soliti controlli sui permessi.',
+				},
+				link: 'pipeline',
+				anchor: { en: 'cloning', it: 'clonazione' },
+				more: { en: 'Cloning', it: 'Clonazione' },
+			},
+		],
+	},
+	{
+		version: '0.22.0',
+		date: '2026-11-11',
+		title: { en: 'Security audit follow-up', it: 'Seguito dell’audit di sicurezza' },
+		changes: [
+			{
+				kind: 'improved',
+				text: {
+					en: 'Behind a reverse proxy Sirio doesn’t manage, the client’s own address is now read from X-Forwarded-For when the proxy is named in SIRIO_TRUSTED_PROXIES, so one failed-login streak no longer locks out everyone and the activity log keeps the real addresses. From anyone else the header is ignored.',
+					it: 'Dietro un reverse proxy che Sirio non gestisce, l’indirizzo del client viene letto da X-Forwarded-For quando il proxy è indicato in SIRIO_TRUSTED_PROXIES: una serie di login falliti non blocca più tutti e il registro delle attività conserva gli indirizzi reali. Da chiunque altro l’intestazione viene ignorata.',
+				},
+				link: 'installation',
+				anchor: { en: '4-first-login', it: '4-primo-accesso' },
+				more: { en: 'First login', it: 'Primo accesso' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Site users can publish containers only on the host ports the administrator opens to them with SIRIO_SITE_PORTS (none by default), so a container can no longer take the panel’s port, or 80 and 443, at boot.',
+					it: 'Gli utenti di un sito possono pubblicare container solo sulle porte dell’host che l’amministratore apre loro con SIRIO_SITE_PORTS (nessuna di default), così un container non può più prendersi la porta del pannello, né la 80 e la 443, all’avvio.',
+				},
+				link: 'security',
+				anchor: { en: 'what-a-site-permission-cant-do', it: 'cosa-un-permesso-su-un-sito-non-consente' },
+				more: { en: 'What a site permission can’t do', it: 'Cosa non può fare il permesso su un sito' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Starting, stopping, restarting, pausing and killing a container is now its own permission, containers.control, which can be denied apart from viewing logs and state.',
+					it: 'Avviare, fermare, riavviare, mettere in pausa e terminare un container è ora un permesso a sé, containers.control, che si può negare separatamente dalla vista di log e stato.',
+				},
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'Bind mounts can no longer lead out of the site through a symbolic link: contained pipelines check out without links, backups and restores check each bind, and restoring over a volume that another site’s container uses is refused.',
+					it: 'I bind mount non possono più uscire dal sito tramite un link simbolico: le pipeline contenute fanno il checkout senza link, backup e ripristini controllano ogni bind e il ripristino su un volume usato dal container di un altro sito viene rifiutato.',
+				},
+				link: 'security',
+				anchor: { en: 'compose-files-and-host-access', it: 'file-compose-e-accesso-allhost' },
+				more: { en: 'Compose files and host access', it: 'File Compose e accesso all’host' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Each account takes at most 20 failed logins in 15 minutes, in the panel and over SFTP: past that, addresses it has never logged in from are refused, so locking an account on purpose doesn’t lock its owner out. SFTP also refuses special files left in a mount.',
+					it: 'Ogni account accetta al massimo 20 login falliti in 15 minuti, nel pannello e via SFTP: oltre, gli indirizzi da cui non ha mai fatto accesso vengono rifiutati, così bloccare un account di proposito non esclude il suo proprietario. L’SFTP rifiuta inoltre i file speciali lasciati in un mount.',
+				},
+				link: 'sftp',
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Webhooks answer every failure with the same 401 and refuse a delivery they already ran, so a captured request can’t redeploy an old commit. SHA-1 signatures are refused unless SIRIO_WEBHOOK_ALLOW_SHA1 is set.',
+					it: 'I webhook rispondono a ogni errore con lo stesso 401 e rifiutano una consegna già eseguita, così una richiesta catturata non può rilanciare un vecchio commit. Le firme SHA-1 sono rifiutate salvo SIRIO_WEBHOOK_ALLOW_SHA1.',
+				},
+				link: 'security',
+				anchor: { en: 'webhooks', it: 'webhook' },
+				more: { en: 'Webhooks', it: 'Webhook' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Git URLs that could be read as options, or that use plain http://, are refused for new repositories. A local backup destination in a folder the rule now refuses is moved to /srv/sirio-backups, and the administrators are notified.',
+					it: 'Gli URL Git che potrebbero essere letti come opzioni, o che usano http:// in chiaro, sono rifiutati per i nuovi repository. Una destinazione di backup locale in una cartella che la regola ora rifiuta viene spostata in /srv/sirio-backups e gli amministratori ricevono una notifica.',
+				},
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Internal error messages, with paths and the words of SQLite or Docker, are shown only to administrators and users with the Docker permission; everyone else gets an error code and a reference to find it in the log.',
+					it: 'I messaggi degli errori interni, con percorsi e parole di SQLite o Docker, li vedono solo gli amministratori e chi ha il permesso Docker; tutti gli altri ricevono un codice d’errore e un riferimento per ritrovarlo nel log.',
+				},
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'The installer of a release no longer uses files found next to it, which let a local user who could write in that folder run code as root during the install.',
+					it: 'L’installer di una release non usa più i file trovati accanto a sé, che permettevano a un utente locale con accesso in scrittura in quella cartella di eseguire codice come root durante l’installazione.',
+				},
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'A failed run now logs why it failed, and the disk check skips read-only images, which raised a “disk full” notification on every machine with a cloud-init config drive. The network list now counts its containers.',
+					it: 'Una run fallita ora scrive nel log il motivo, e il controllo del disco salta le immagini di sola lettura, che generavano una notifica «disco pieno» su ogni macchina con un config drive cloud-init. L’elenco delle reti ora conta i suoi container.',
+				},
+			},
+		],
+	},
+	{
 		version: '0.21.1',
 		date: '2026-11-11',
 		changes: [
