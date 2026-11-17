@@ -64,6 +64,36 @@ const maintainerOnly: Change = {
 
 export const releases: Release[] = [
 	{
+		version: '0.24.0',
+		date: '2026-11-17',
+		changes: [
+			{
+				kind: 'new',
+				text: {
+					en: 'Starting a pipeline by hand now offers the repository’s branches, read from the Git remote, with the pipeline’s default branch already selected. Another branch, a tag or a commit can still be typed in.',
+					it: 'Avviando una pipeline a mano ora vengono proposti i branch del repository, letti dal remote Git, con il branch predefinito della pipeline già selezionato. Un altro branch, un tag o un commit si possono sempre scrivere a mano.',
+				},
+				link: 'pipeline',
+				anchor: { en: 'manual-start', it: 'avvio-manuale' },
+				more: { en: 'Manual start', it: 'Avvio manuale' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'A manual pipeline can have a default branch, set in its editor: it’s the one the Run dialog proposes.',
+					it: 'Una pipeline manuale può avere un branch predefinito, impostato nel suo editor: è quello che propone la finestra di avvio.',
+				},
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'The Run dialog no longer proposes a trigger pattern such as release/* or v*, which a run can’t check out.',
+					it: 'La finestra di avvio non propone più un pattern del trigger come release/* o v*, che un’esecuzione non può scaricare.',
+				},
+			},
+		],
+	},
+	{
 		version: '0.23.0',
 		date: '2026-11-17',
 		changes: [

@@ -191,7 +191,7 @@ export const features: Record<
 					},
 					{
 						title: 'Manual runs and rollbacks',
-						text: 'Start a pipeline by hand on any branch, tag or commit, interrupt a run, and run an older one again to roll back.',
+						text: 'Start a pipeline by hand on any branch, picked from the repository’s own list, or on a tag or commit; interrupt a run, and run an older one again to roll back.',
 					},
 					{
 						title: 'Live logs and history',
@@ -701,7 +701,7 @@ export const features: Record<
 					},
 					{
 						title: 'Avvii a mano e rollback',
-						text: 'Lancia una pipeline a mano su qualunque branch, tag o commit, interrompi un’esecuzione, e rilanciane una vecchia per tornare indietro.',
+						text: 'Lancia una pipeline a mano su qualunque branch, scelto dall’elenco del repository, o su un tag o un commit; interrompi un’esecuzione, e rilanciane una vecchia per tornare indietro.',
 					},
 					{
 						title: 'Log dal vivo e storico',
