@@ -49,7 +49,7 @@ export default defineConfig({
 				{
 					label: 'Sites and deploys',
 					translations: { it: 'Siti e deploy' },
-					items: ['docs/domains', 'docs/pipeline', 'docs/backups', 'docs/sftp', 'docs/image-updates'],
+					items: ['docs/domains', 'docs/pipeline', 'docs/backups', 'docs/sftp', 'docs/transfers', 'docs/image-updates'],
 				},
 				{
 					label: 'The server',

@@ -64,6 +64,106 @@ const maintainerOnly: Change = {
 
 export const releases: Release[] = [
 	{
+		version: '0.26.0',
+		date: '2026-11-19',
+		title: { en: 'Transfers between panels', it: 'Trasferimenti tra pannelli' },
+		changes: [
+			{
+				kind: 'new',
+				text: {
+					en: 'A site’s volumes, databases and folders can be copied onto a linked site of another Sirio panel, to move a site to a new server or refresh a staging copy. The receiving panel creates the link and hands out an invite. Before anything moves, you see what each item would copy and what it pairs with on the other side.',
+					it: 'I volumi, i database e le cartelle di un sito si possono copiare su un sito collegato di un altro pannello Sirio, per spostare un sito su un nuovo server o aggiornare una copia di staging. Il pannello che riceve crea il collegamento e consegna un invito. Prima che qualcosa si muova vedi cosa copierebbe ogni elemento e a cosa corrisponde dall’altra parte.',
+				},
+				link: 'transfers',
+				more: { en: 'Transfers between panels', it: 'Trasferimenti tra pannelli' },
+			},
+			{
+				kind: 'new',
+				text: {
+					en: 'The receiving panel decides what is protected: its protected files, the files a repository tracks, device files and links leading outside a copied item are never written. Nothing is applied until every file and dump has arrived intact. The containers using a target are stopped while the copy is applied and started again afterwards.',
+					it: 'È il pannello che riceve a decidere cosa è protetto: i suoi file protetti, i file tracciati da un repository, i file di dispositivo e i link che portano fuori da un elemento copiato non vengono mai scritti. Non si applica nulla finché ogni file e ogni dump non è arrivato integro. I container che usano una destinazione vengono fermati mentre la copia viene applicata e riavviati dopo.',
+				},
+				link: 'transfers',
+				anchor: { en: 'protected-files', it: 'file-protetti' },
+				more: { en: 'Protected files', it: 'File protetti' },
+			},
+			{
+				kind: 'new',
+				text: {
+					en: 'Transfers are off until an administrator turns them on in Settings. Linking sites takes the new Transfers permission, and a site’s Transfers area decides who sees and sends its transfers.',
+					it: 'I trasferimenti sono spenti finché un amministratore non li attiva nelle Impostazioni. Collegare i siti richiede il nuovo permesso Trasferimenti, e l’area Trasferimenti di un sito decide chi vede e invia i suoi trasferimenti.',
+				},
+				link: 'transfers',
+				anchor: { en: 'permissions', it: 'permessi' },
+				more: { en: 'Permissions', it: 'Permessi' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'A transfer sends a notification when a site has been received and when it fails on either side. Self-updates, restarts and shutdowns wait for a transfer in progress.',
+					it: 'Un trasferimento invia una notifica quando un sito è stato ricevuto e quando fallisce da una delle due parti. Aggiornamenti, riavvii e spegnimenti aspettano che un trasferimento in corso finisca.',
+				},
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'The pipeline docs now explain where an application’s data should live. Every deploy ends with git clean -fd, so a folder bound from the repository with ./ is emptied unless .gitignore lists it: keep uploads in a named volume.',
+					it: 'La documentazione delle pipeline ora spiega dove tenere i dati di un’applicazione. Ogni deploy finisce con git clean -fd, quindi una cartella del repository montata con ./ viene svuotata a meno che .gitignore la elenchi: tieni i file caricati in un volume nominato.',
+				},
+				link: 'pipeline',
+				anchor: { en: 'data-the-application-writes', it: 'i-dati-che-lapplicazione-scrive' },
+				more: { en: 'Data the application writes', it: 'I dati che l’applicazione scrive' },
+			},
+		],
+	},
+	{
+		version: '0.25.2',
+		date: '2026-11-18',
+		changes: [
+			{
+				kind: 'improved',
+				text: {
+					en: 'After you move a container to another site, the notice that lets you undo it shows a bar with the time left. It pauses while your mouse is over the notice or one of its buttons has keyboard focus.',
+					it: 'Dopo aver spostato un container in un altro sito, l’avviso che permette di annullare mostra una barra con il tempo rimasto. Si ferma mentre il mouse è sopra l’avviso o uno dei suoi pulsanti ha il focus da tastiera.',
+				},
+			},
+		],
+	},
+	{
+		version: '0.25.1',
+		date: '2026-11-17',
+		changes: [
+			{
+				kind: 'new',
+				text: {
+					en: 'The Containers page shows one table per site, plus one for the shared containers that belong to no site. Sites without containers stay listed but collapsed, and the browser remembers which groups you collapsed.',
+					it: 'La pagina Container mostra una tabella per sito, più una per i container condivisi che non appartengono a nessun sito. I siti senza container restano in elenco ma chiusi, e il browser ricorda quali gruppi hai chiuso.',
+				},
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'Moving a container to another site is immediate: the row moves to that site’s table and is highlighted, with a notice to jump to it or undo.',
+					it: 'Spostare un container in un altro sito è immediato: la riga passa nella tabella di quel sito e viene evidenziata, con un avviso per raggiungerla o annullare.',
+				},
+			},
+			{
+				kind: 'new',
+				text: {
+					en: 'A Preferences card in Account lets each user choose whether shared containers come before or after the sites.',
+					it: 'Una card Preferenze in Account permette a ogni utente di scegliere se i container condivisi vengono prima o dopo i siti.',
+				},
+			},
+			{
+				kind: 'maintenance',
+				text: {
+					en: 'The release audit fails on high-severity advisories only in code that ships with Sirio, and on critical ones only for build tools. 0.25.0 was never published because of this check: 0.25.1 includes all of its changes.',
+					it: 'Il controllo delle release fallisce per le vulnerabilità gravi solo nel codice che fa parte di Sirio, e per gli strumenti di build solo per quelle critiche. La 0.25.0 non è mai stata pubblicata per questo controllo: la 0.25.1 ne include tutte le modifiche.',
+				},
+			},
+		],
+	},
+	{
 		version: '0.24.0',
 		date: '2026-11-17',
 		changes: [

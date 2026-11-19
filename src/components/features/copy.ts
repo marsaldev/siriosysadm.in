@@ -44,7 +44,7 @@ export const features: Record<
 					},
 					{
 						title: 'Containers',
-						text: 'Filter by site, start, stop, restart, pause, resume and remove. Each one shows its image, state, health, addresses and published ports.',
+						text: 'Grouped by site, with the shared ones apart. Start, stop, restart, pause, resume and remove. Each one shows its image, state, health, addresses and published ports.',
 					},
 					{
 						title: 'Create a container',
@@ -304,6 +304,35 @@ export const features: Record<
 				],
 			},
 			{
+				id: 'transfers',
+				title: 'Transfers between panels',
+				summary: 'Copy a site’s data onto a site of another Sirio panel, to move it to a new server or refresh a staging copy.',
+				link: 'transfers',
+				more: 'Transfers between panels',
+				items: [
+					{
+						title: 'Linked sites',
+						text: 'The receiving panel creates the link and hands out an invite. The sender pins its certificate, and every request between the two is signed.',
+					},
+					{
+						title: 'Volumes, databases and folders',
+						text: 'Each item is paired with its counterpart on the other side, and you see what it would copy before anything moves. Databases are dumped one by one, so the receiver keeps its own users.',
+					},
+					{
+						title: 'The receiver decides',
+						text: 'Its protected files, the files a repository tracks, device files and links leading outside an item are never written.',
+					},
+					{
+						title: 'All or nothing',
+						text: 'Nothing is applied until every file and dump has arrived intact. The containers using a target stop while it’s written and start again afterwards.',
+					},
+					{
+						title: 'Off until you want it',
+						text: 'An administrator turns transfers on in Settings, and permissions decide who links sites and who sends.',
+					},
+				],
+			},
+			{
 				id: 'host',
 				title: 'The host',
 				summary: 'Packages, ports and power for the machine under the containers.',
@@ -554,7 +583,7 @@ export const features: Record<
 					},
 					{
 						title: 'Container',
-						text: 'Filtra per sito, avvia, ferma, riavvia, metti in pausa, riprendi ed elimina. Per ognuno immagine, stato, salute, indirizzi e porte pubblicate.',
+						text: 'Raggruppati per sito, con quelli condivisi a parte. Avvia, ferma, riavvia, metti in pausa, riprendi ed elimina. Per ognuno immagine, stato, salute, indirizzi e porte pubblicate.',
 					},
 					{
 						title: 'Crea un container',
@@ -810,6 +839,35 @@ export const features: Record<
 					{
 						title: 'Niente di quello che non deve',
 						text: 'Percorsi di sistema, il socket di Docker, i dati di Sirio, le home, i file dei database e i dati condivisi con altri siti non vengono mai esposti.',
+					},
+				],
+			},
+			{
+				id: 'transfers',
+				title: 'Trasferimenti tra pannelli',
+				summary: 'Copia i dati di un sito su un sito di un altro pannello Sirio, per spostarlo su un nuovo server o aggiornare una copia di staging.',
+				link: 'transfers',
+				more: 'Trasferimenti tra pannelli',
+				items: [
+					{
+						title: 'Siti collegati',
+						text: 'Il pannello che riceve crea il collegamento e consegna un invito. Chi invia fissa il suo certificato, e ogni richiesta tra i due è firmata.',
+					},
+					{
+						title: 'Volumi, database e cartelle',
+						text: 'Ogni elemento viene abbinato al suo corrispondente dall’altra parte, e vedi cosa copierebbe prima che si muova qualcosa. I database vengono esportati uno alla volta, così chi riceve conserva i propri utenti.',
+					},
+					{
+						title: 'Decide chi riceve',
+						text: 'I suoi file protetti, i file tracciati da un repository, i file di dispositivo e i link che portano fuori da un elemento non vengono mai scritti.',
+					},
+					{
+						title: 'Tutto o niente',
+						text: 'Non si applica nulla finché ogni file e ogni dump non è arrivato integro. I container che usano una destinazione si fermano mentre viene scritta e ripartono dopo.',
+					},
+					{
+						title: 'Spenti finché non servono',
+						text: 'Un amministratore attiva i trasferimenti nelle Impostazioni, e i permessi decidono chi collega i siti e chi invia.',
 					},
 				],
 			},

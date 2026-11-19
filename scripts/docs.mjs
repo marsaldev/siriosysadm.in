@@ -16,6 +16,7 @@ export const PAGES = [
 	{ slug: 'pipeline', en: 'pipeline.md', it: 'pipeline.md' },
 	{ slug: 'backups', en: 'backups.md', it: 'backup.md' },
 	{ slug: 'sftp', en: 'sftp.md', it: 'sftp.md' },
+	{ slug: 'transfers', en: 'transfers.md', it: 'trasferimenti.md' },
 	{ slug: 'image-updates', en: 'image-updates.md', it: 'aggiornamento-immagini.md' },
 	{ slug: 'packages', en: 'packages.md', it: 'pacchetti.md' },
 	{ slug: 'security', en: 'security.md', it: 'sicurezza.md' },
