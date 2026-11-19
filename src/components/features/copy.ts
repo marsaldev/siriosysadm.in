@@ -16,9 +16,27 @@ type Category = {
 	items: Item[];
 };
 
+/** How well a panel covers a row: nothing for a plain description, otherwise ● native, ◐ partial
+ * (an extension or a module), ○ not what it is for. */
+type Mark = '' | 'full' | 'part' | 'none';
+type Cell = [Mark, string];
+type Compare = {
+	id: string;
+	title: string;
+	summary: string;
+	/** Panels, Sirio first. */
+	columns: string[];
+	rows: { label: string; cells: Cell[] }[];
+	legend: { full: string; part: string; none: string };
+	how: string;
+	/** When the other panels' cells were last checked against their documentation: the cells go
+	 * stale as they release, so bump this with every check. */
+	verified: string;
+};
+
 export const features: Record<
 	'en' | 'it',
-	{ lead: string; index: string; count: string; categories: Category[] }
+	{ lead: string; index: string; count: string; categories: Category[]; compare: Compare }
 > = {
 	en: {
 		lead: 'Everything Sirio does, in one place. Each section links to the documentation that explains it in depth.',
@@ -558,6 +576,108 @@ export const features: Record<
 				],
 			},
 		],
+		compare: {
+			id: 'compare',
+			title: 'Sirio and other panels',
+			summary:
+				'Plesk, cPanel and Webmin are excellent at their own job: hosting classic PHP sites, with email and client accounts. Sirio does a different one: running the containers on a server.',
+			columns: ['Sirio', 'Plesk', 'cPanel', 'Webmin'],
+			rows: [
+				{
+					label: 'Built for',
+					cells: [
+						['', 'People running containers on their own server'],
+						['', 'Web hosting and agencies'],
+						['', 'Shared hosting and resellers'],
+						['', 'General system administration'],
+					],
+				},
+				{
+					label: 'Docker and Compose',
+					cells: [
+						['full', 'Containers, images, volumes, networks, logs and a terminal'],
+						['part', 'Docker extension, with Compose stacks (no Dockerfiles)'],
+						['none', 'No container management'],
+						['part', 'Third-party modules only'],
+					],
+				},
+				{
+					label: 'Deploy from git',
+					cells: [
+						['full', 'Step-based pipelines, webhooks, rollbacks and logs'],
+						['part', 'Git extension with webhooks and post-deploy commands'],
+						['part', 'A .cpanel.yml file; automatic on push only for repositories created in the panel; no webhooks or rollbacks'],
+						['none', 'Not built in'],
+					],
+				},
+				{
+					label: 'HTTPS and proxy',
+					cells: [
+						['full', 'Managed Caddy, automatic HTTPS, routes checked before they go live'],
+						['part', 'Built-in Let’s Encrypt'],
+						['part', 'AutoSSL'],
+						['part', 'Built-in Let’s Encrypt, proxy set up by hand'],
+					],
+				},
+				{
+					label: 'Backups',
+					cells: [
+						['full', 'Encrypted restic, per site, with restore from the panel'],
+						['part', 'Built-in backups; scheduled backups to remote storage are a premium feature'],
+						['part', 'Built-in WHM backups'],
+						['part', 'Module for configuration files and the filesystem'],
+					],
+				},
+				{
+					label: 'Backup destinations',
+					cells: [
+						['', 'Local folder, SFTP (with the host key pinned), Amazon S3 and S3-compatible, Backblaze B2, Google Cloud Storage'],
+						['', 'FTP(S); S3 and SFTP through extensions'],
+						['', 'Amazon S3 and S3-compatible, Backblaze B2, Google Drive, SFTP, FTP, Rsync, WebDAV, a local directory'],
+						['', 'Local folder, FTP, SSH'],
+					],
+				},
+				{
+					label: 'Image updates',
+					cells: [
+						['full', 'Checked every six hours, updated on request'],
+						['none', 'No check: you recreate the container by hand'],
+						['none', 'No container management'],
+						['none', 'Not built in'],
+					],
+				},
+				{
+					label: 'Email, DNS, multi-client hosting',
+					cells: [
+						['none', 'Not its purpose'],
+						['full', 'Native'],
+						['full', 'Native'],
+						['part', 'Through modules'],
+					],
+				},
+				{
+					label: 'PHP and WordPress sites',
+					cells: [
+						['none', 'If you have them, they run in a container'],
+						['full', 'Native'],
+						['full', 'Native'],
+						['part', 'Through modules'],
+					],
+				},
+				{
+					label: 'Installation',
+					cells: [
+						['', 'One binary, no agent, amd64 and arm64'],
+						['', 'Full suite'],
+						['', 'Full suite, on a freshly installed AlmaLinux, CloudLinux or Ubuntu 24.04; no ARM'],
+						['', 'Package with modules'],
+					],
+				},
+			],
+			legend: { full: 'Native, central to the product', part: 'Partial: an extension, a module or by hand', none: 'Not what it is for' },
+			how: 'If you host PHP sites for clients, with mailboxes and DNS, pick Plesk or cPanel. If you administer a server in general, Webmin is a good starting point. If your server runs containers and you want deploys, HTTPS and backups in one place, pick Sirio.',
+			verified: 'Checked in November 2026 against the documentation of each panel. They release often: if something here is out of date, tell us.',
+		},
 	},
 	it: {
 		lead: 'Tutto quello che fa Sirio, in un solo posto. Ogni sezione rimanda alla documentazione che la spiega a fondo.',
@@ -1097,6 +1217,108 @@ export const features: Record<
 				],
 			},
 		],
+		compare: {
+			id: 'compare',
+			title: 'Sirio e gli altri pannelli',
+			summary:
+				'Plesk, cPanel e Webmin sono ottimi nel loro mestiere: l’hosting di siti PHP, con email e account per i clienti. Sirio fa un altro mestiere: gestire i container di un server.',
+			columns: ['Sirio', 'Plesk', 'cPanel', 'Webmin'],
+			rows: [
+				{
+					label: 'Pensato per',
+					cells: [
+						['', 'Chi gestisce container su un proprio server'],
+						['', 'Hosting di siti e agenzie'],
+						['', 'Hosting condiviso e rivendita'],
+						['', 'Amministrazione generale del sistema'],
+					],
+				},
+				{
+					label: 'Docker e Compose',
+					cells: [
+						['full', 'Containers, immagini, volumi, reti, log e terminale'],
+						['part', 'Estensione Docker, con stack Compose (senza Dockerfile)'],
+						['none', 'Nessuna gestione dei container'],
+						['part', 'Solo con moduli di terzi'],
+					],
+				},
+				{
+					label: 'Deploy da git',
+					cells: [
+						['full', 'Pipeline a passi, webhook, rollback e log'],
+						['part', 'Estensione Git con webhook e comandi post-deploy'],
+						['part', 'Un file .cpanel.yml; automatico al push solo per i repository creati nel pannello; niente webhook né rollback'],
+						['none', 'Non integrato'],
+					],
+				},
+				{
+					label: 'HTTPS e proxy',
+					cells: [
+						['full', 'Caddy gestito, HTTPS automatico, rotte controllate prima di andare online'],
+						['part', 'Let’s Encrypt integrato'],
+						['part', 'AutoSSL'],
+						['part', 'Let’s Encrypt integrato, proxy da configurare a mano'],
+					],
+				},
+				{
+					label: 'Backup',
+					cells: [
+						['full', 'restic cifrato, per sito, con ripristino dal pannello'],
+						['part', 'Backup integrato; quelli pianificati su storage remoto sono una funzione premium'],
+						['part', 'Backup integrato di WHM'],
+						['part', 'Modulo per i file di configurazione e il filesystem'],
+					],
+				},
+				{
+					label: 'Destinazioni dei backup',
+					cells: [
+						['', 'Cartella locale, SFTP (con la chiave dell’host fissata), Amazon S3 e S3-compatibili, Backblaze B2, Google Cloud Storage'],
+						['', 'FTP(S); S3 e SFTP con estensioni'],
+						['', 'Amazon S3 e S3-compatibili, Backblaze B2, Google Drive, SFTP, FTP, Rsync, WebDAV, una cartella locale'],
+						['', 'Cartella locale, FTP, SSH'],
+					],
+				},
+				{
+					label: 'Aggiornamento immagini',
+					cells: [
+						['full', 'Controllo ogni sei ore, aggiornamento su richiesta'],
+						['none', 'Nessun controllo: il container si ricrea a mano'],
+						['none', 'Nessuna gestione dei container'],
+						['none', 'Non integrato'],
+					],
+				},
+				{
+					label: 'Email, DNS, hosting multi-cliente',
+					cells: [
+						['none', 'Non è il suo scopo'],
+						['full', 'Nativo'],
+						['full', 'Nativo'],
+						['part', 'Con moduli'],
+					],
+				},
+				{
+					label: 'Siti PHP e WordPress',
+					cells: [
+						['none', 'Se ci sono, girano in un container'],
+						['full', 'Nativo'],
+						['full', 'Nativo'],
+						['part', 'Con moduli'],
+					],
+				},
+				{
+					label: 'Installazione',
+					cells: [
+						['', 'Un solo binario, nessun agente, amd64 e arm64'],
+						['', 'Suite completa'],
+						['', 'Suite completa, su un AlmaLinux, CloudLinux o Ubuntu 24.04 appena installato; niente ARM'],
+						['', 'Pacchetto con moduli'],
+					],
+				},
+			],
+			legend: { full: 'Nativo, centrale nel prodotto', part: 'Parziale: un’estensione, un modulo o a mano', none: 'Non è il suo scopo' },
+			how: 'Se ospiti siti PHP per dei clienti, con caselle email e DNS, scegli Plesk o cPanel. Se amministri un server in generale, Webmin è un buon punto di partenza. Se il tuo server esegue container e vuoi deploy, HTTPS e backup in un posto solo, scegli Sirio.',
+			verified: 'Verificato a novembre 2026 sulla documentazione di ciascun pannello. Escono spesso nuove versioni: se qualcosa qui è superato, scrivici.',
+		},
 	},
 };
 
