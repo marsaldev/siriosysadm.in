@@ -64,6 +64,39 @@ const maintainerOnly: Change = {
 
 export const releases: Release[] = [
 	{
+		version: '0.28.0',
+		date: '2026-11-20',
+		changes: [
+			{
+				kind: 'new',
+				text: {
+					en: 'SFTP can share folders inside a deployed repository: a folder in a pipeline’s checkout, like a Compose project’s ./uploads, can now be granted to an account. The checkout itself never can. Such a folder is read-only unless one of the site’s containers writes to it, and the SFTP card warns that every deploy removes from it whatever the repository’s .gitignore doesn’t list.',
+					it: 'SFTP può condividere le cartelle dentro un repository pubblicato: una cartella nel checkout di una pipeline, come la ./uploads di un progetto Compose, ora si può assegnare a un account. Il checkout in sé mai. Una cartella così è in sola lettura, a meno che uno dei container del sito ci scriva, e la scheda SFTP avvisa che ogni deploy ne toglie ciò che il .gitignore del repository non elenca.',
+				},
+				link: 'sftp',
+				anchor: { en: 'folders-inside-a-pipelines-checkout', it: 'cartelle-dentro-il-checkout-di-una-pipeline' },
+				more: { en: 'Folders inside a pipeline’s checkout', it: 'Cartelle dentro il checkout di una pipeline' },
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'Deleting a branch or tag on GitLab no longer starts a pipeline whose trigger matches it: the run used to start and then fail checking out a ref that no longer existed.',
+					it: 'Cancellare un branch o un tag su GitLab non avvia più una pipeline il cui trigger gli corrisponde: l’esecuzione partiva e poi falliva nel checkout di un riferimento che non esisteva più.',
+				},
+				link: 'pipeline',
+				anchor: { en: 'automatic-start-from-a-webhook', it: 'avvio-automatico-da-webhook' },
+				more: { en: 'Automatic start from a webhook', it: 'Avvio automatico da webhook' },
+			},
+			{
+				kind: 'improved',
+				text: {
+					en: 'The descriptions systemctl and journalctl show for Sirio’s service and its helpers for packages and Docker installation are now in English.',
+					it: 'Le descrizioni che systemctl e journalctl mostrano per il servizio di Sirio e per i suoi helper dei pacchetti e dell’installazione di Docker ora sono in inglese.',
+				},
+			},
+		],
+	},
+	{
 		version: '0.27.0',
 		date: '2026-11-20',
 		changes: [

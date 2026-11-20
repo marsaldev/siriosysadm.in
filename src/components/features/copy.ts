@@ -298,6 +298,12 @@ export const features: Record<
 				summary: 'Give the people of a site access to its files with any SFTP client.',
 				link: 'sftp',
 				more: 'SFTP',
+				shot: {
+					name: 'sftp',
+					label: 'SFTP',
+					alt: 'The shop site’s SFTP server, running on port 2222 with its host key: the folders and volumes it can expose, a note that one of them lies inside a pipeline’s checkout, and three accounts with their logins and access, one disabled.',
+					caption: 'A site’s SFTP server: what it can expose, and who sees what.',
+				},
 				items: [
 					{
 						title: 'One server per site',
@@ -314,6 +320,10 @@ export const features: Record<
 					{
 						title: 'The right owner',
 						text: 'Uploaded files take the owner of the folder they land in, or one you choose, so the application can still read them.',
+					},
+					{
+						title: 'Folders of a deployed repository',
+						text: 'A folder inside a pipeline’s checkout, like a Compose project’s ./uploads, can be shared too, read-only unless the site’s containers write to it, with a warning that deploys remove what .gitignore doesn’t list.',
 					},
 					{
 						title: 'Nothing it shouldn’t',
@@ -939,6 +949,12 @@ export const features: Record<
 				summary: 'Dai alle persone di un sito accesso ai suoi file con qualunque client SFTP.',
 				link: 'sftp',
 				more: 'SFTP',
+				shot: {
+					name: 'sftp',
+					label: 'SFTP',
+					alt: 'Il server SFTP del sito shop, attivo sulla porta 2222 con la sua chiave host: le cartelle e i volumi che può esporre, una nota che una di loro sta dentro il checkout di una pipeline, e tre account con il loro accesso, uno disattivato.',
+					caption: 'Il server SFTP di un sito: cosa può esporre, e chi vede cosa.',
+				},
 				items: [
 					{
 						title: 'Un server per sito',
@@ -955,6 +971,10 @@ export const features: Record<
 					{
 						title: 'Il proprietario giusto',
 						text: 'I file caricati prendono il proprietario della cartella in cui finiscono, o quello che scegli tu, così l’applicazione riesce ancora a leggerli.',
+					},
+					{
+						title: 'Le cartelle di un repository pubblicato',
+						text: 'Si può condividere anche una cartella dentro il checkout di una pipeline, come la ./uploads di un progetto Compose, in sola lettura se i container del sito non ci scrivono, con l’avviso che ogni deploy toglie ciò che il .gitignore non elenca.',
 					},
 					{
 						title: 'Niente di quello che non deve',
