@@ -69,6 +69,12 @@ export const copy = {
 						link: 'sftp',
 						more: 'SFTP',
 					},
+					{
+						title: 'Transfers between panels',
+						text: 'Copy a site’s volumes, databases and folders onto a site of another Sirio panel, to move it to a new server or refresh a staging copy. You see what would be copied before anything moves, and the receiving panel decides which files are protected.',
+						link: 'transfers',
+						more: 'Transfers',
+					},
 				],
 			},
 			{
@@ -131,7 +137,7 @@ export const copy = {
 		isnt: {
 			title: 'What it isn’t',
 			items: [
-				['Multi-server.', 'Sirio administers the machine it runs on. For more servers, install one on each.'],
+				['Multi-server.', 'Sirio administers the machine it runs on. For more servers, install one on each, and move sites between them with a transfer.'],
 				['Multi-tenant.', 'Sites group domains, containers and pipelines, and permissions can stop at a site, but they share one host.'],
 				['For Windows.', 'Linux only, on amd64 or arm64. No plugin marketplace either.'],
 			],
@@ -216,6 +222,12 @@ export const copy = {
 						link: 'sftp',
 						more: 'SFTP',
 					},
+					{
+						title: 'Trasferimenti tra pannelli',
+						text: 'Copia i volumi, i database e le cartelle di un sito su un sito di un altro pannello Sirio, per spostarlo su un nuovo server o aggiornare una copia di staging. Vedi cosa verrebbe copiato prima che si muova qualcosa, ed è il pannello che riceve a decidere quali file sono protetti.',
+						link: 'transfers',
+						more: 'Trasferimenti',
+					},
 				],
 			},
 			{
@@ -278,7 +290,7 @@ export const copy = {
 		isnt: {
 			title: 'Cosa non è',
 			items: [
-				['Multi-server.', 'Sirio amministra la macchina su cui gira. Per più server, se ne installa uno su ciascuno.'],
+				['Multi-server.', 'Sirio amministra la macchina su cui gira. Per più server, se ne installa uno su ciascuno, e i siti si spostano dall’uno all’altro con un trasferimento.'],
 				['Multi-tenant.', 'I siti raggruppano domini, container e pipeline, e i permessi possono fermarsi a un sito, ma condividono lo stesso host.'],
 				['Per Windows.', 'Solo Linux, su amd64 o arm64. E niente marketplace di plugin.'],
 			],
