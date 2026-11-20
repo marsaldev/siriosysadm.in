@@ -1,0 +1,221 @@
+---
+title: Laravel
+description: "Deploy a Laravel application with a PostgreSQL database and HTTPS from a Git repository, step by step."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A [Laravel](https://laravel.com) application with a PostgreSQL database, built into a container and served by [FrankenPHP](https://frankenphp.dev). Migrations run by themselves at every deploy. About 25 minutes. You need PHP 8.2+ and [Composer](https://getcomposer.org) on your computer.
+
+Everything below assumes you've done [Before you start](/guides/#before-you-start) once: Sirio installed, the proxy running, and a domain pointing at your server.
+
+## 1. Prepare the files
+
+Create an empty repository on GitHub (GitLab or Gitea work the same; a **private** one is fine and recommended, because the files will contain passwords). Then, on your computer:
+
+```bash
+git clone git@github.com:YOU/laravel-sirio.git
+cd laravel-sirio
+```
+
+Start from your project. If you don't have one yet, create a new one inside the repository folder:
+
+```bash
+composer create-project laravel/laravel . --no-interaction
+```
+
+(If the folder is not empty, create it in a temporary folder and copy everything into the repository, `.git` excluded.)
+
+Get the application key, you'll need it in a moment:
+
+```bash
+php artisan key:generate --show
+```
+
+It prints something like `base64:Xk3…=`. Copy all of it.
+
+Now add four files to the project. First `Dockerfile`:
+
+```dockerfile title="Dockerfile"
+# 1. Compile CSS and JavaScript
+FROM node:22-alpine AS assets
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# 2. Final image: PHP + web server (FrankenPHP)
+FROM dunglas/frankenphp:1-php8.4
+RUN install-php-extensions pdo_pgsql intl zip opcache pcntl bcmath
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+ENV SERVER_NAME=:80 COMPOSER_ALLOW_SUPERUSER=1
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+COPY --from=assets /app/public/build public/build
+COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint
+RUN chmod +x /usr/local/bin/app-entrypoint
+ENTRYPOINT ["app-entrypoint"]
+CMD ["--config", "/etc/frankenphp/Caddyfile", "--adapter", "caddyfile"]
+```
+
+Then `docker/entrypoint.sh`, which runs at every start: it links the public storage and updates the database before the web server starts. (Create the `docker` folder.)
+
+```sh title="docker/entrypoint.sh"
+#!/bin/sh
+set -e
+php artisan storage:link --force
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+exec docker-php-entrypoint "$@"
+```
+
+Then `.dockerignore`:
+
+```text title=".dockerignore"
+.git
+vendor
+node_modules
+.env
+storage/logs/*
+```
+
+And `compose.yaml`. Replace `APP_KEY` with the key you copied, and `APP_URL` with your domain. Choose a password for the database and write it in both `DB_PASSWORD` and `POSTGRES_PASSWORD`.
+
+```yaml title="compose.yaml"
+services:
+  app:
+    build: .
+    container_name: laravel
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: Laravel
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: base64:PASTE-THE-KEY-HERE
+      APP_URL: https://app.example.com
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_DATABASE: laravel
+      DB_USERNAME: laravel
+      DB_PASSWORD: CHANGE-ME
+    volumes:
+      - laravel_storage:/app/storage/app
+
+  db:
+    image: postgres:17
+    container_name: laravel-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: laravel
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: CHANGE-ME
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U laravel -d laravel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  laravel_storage:
+  db_data:
+```
+
+Last, tell Laravel it sits behind Sirio's proxy so it generates `https://` links. In `bootstrap/app.php` replace the empty `withMiddleware` function:
+
+```php title="bootstrap/app.php" ins={2}
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+    })
+```
+
+
+When the files are ready, send them to the repository:
+
+```bash
+git add .
+git commit -m "First version"
+git push
+```
+
+## 2. Create the site and the domain in Sirio
+
+In Sirio:
+
+1. Open **Sites** → **New site**, type the name `laravel` and press **Create site**.
+2. In the site, press **New domain**, type `app.example.com` (use your own domain) and leave **TLS** on *Automatic HTTPS (Let's Encrypt)*. Press **Add**.
+3. Press **Check DNS**: it must show the public IP of your server. If it doesn't, fix the `A` record at your DNS provider first and try again in a few minutes.
+
+## 3. Connect the repository
+
+In Sirio:
+
+1. Open **Repositories** → **Connect repository**.
+2. **Git URL**: the address of the repository you just created. **Default branch**: `main`.
+3. Public repository: choose *public repository*. Private repository: choose *HTTPS token* or *SSH deploy key* ([how](/docs/pipeline/#connecting-a-repository)).
+4. Press **Connect**.
+
+## 4. Create the pipeline
+
+In Sirio:
+
+1. Open **Pipelines** → **New pipeline**.
+2. **Name**: `laravel`. **Repository**: the one you just connected. **Site**: `laravel`. **When to run**: *on request only* (you can change it to *on every push* later).
+3. In the **Deploy** phase press **Detect from compose**. Sirio finds `compose.yaml` and adds a *Docker Compose* step with the command `up`.
+   Then, in that step, type `--build` in **Additional arguments**: it makes Docker rebuild the image from your code at every deploy.
+4. Press **Save pipeline**.
+
+## 5. Run the pipeline
+
+1. In **Pipelines**, press **Run** next to `laravel`, keep the default branch and confirm.
+2. Watch the log. The first time it builds the image (PHP extensions, Composer, CSS and JavaScript): 4 to 8 minutes.
+3. When the run turns green, open **Containers**: `laravel` is there, running.
+
+## 6. Point the domain at the container
+
+1. Go back to **Sites** → `laravel`.
+2. On the `app.example.com` row press **Route**.
+3. **Path**: `/`. **Container**: `laravel`. **Port**: `80`.
+4. Press **Add**.
+
+That's all: Sirio configures the proxy and the HTTPS certificate arrives with the first visit to `https://app.example.com`. Don't publish any port in the compose file: the route reaches the container inside the server's network.
+
+## 7. Finish in the browser
+
+Open `https://app.example.com`: the Laravel welcome page is there, with its database already migrated.
+
+From now on the routine is: change the code, `git push`, **Run** the pipeline. To make it automatic, set the pipeline's **When to run** to *on every push* and add the webhook as explained in [Pipelines](/docs/pipeline/#automatic-start-from-a-webhook).
+
+To run an Artisan command (a seeder, creating a user), open the `laravel` container in **Containers**, press **Terminal** and type for example `php artisan db:seed --force`.
+
+## Updating
+
+`git push` your changes and run the pipeline: Sirio rebuilds the image from the new code, replaces the container, and the migrations run at startup.
+Then, in **Pipelines**, press **Run** again. The database and the files in `storage/app` stays: it lives in named volumes, which a deploy does not touch.
+
+## Backups
+
+Create a backup plan for the site in **Backups** and include the volumes `db_data`, `laravel_storage`: see [Backups](/docs/backups/). Do it before you start adding real content.
+
+## If something goes wrong
+
+- **"No application encryption key has been specified"**: `APP_KEY` is still the placeholder, or lost its `base64:` start.
+- **The build fails at `npm install` / `npm run build`**: open the log. If your project doesn't use Vite, remove the first stage of the `Dockerfile` and its `COPY --from=assets` line.
+- **The container restarts in a loop**: open its log. A migration of yours is failing, or the database password differs between `DB_PASSWORD` and `POSTGRES_PASSWORD`.
+- **Pages load without styles, or links are `http://`**: the `trustProxies` line of `bootstrap/app.php` is missing, or `APP_URL` doesn't start with `https://`.
+
+- **A step fails or the run stays red**: open the run's log in **Runs**. A file Sirio refuses (for example a `ports:` line it can't allow, or a folder outside the repository) is named there, with the key. More in [Compose files and host access](/docs/security/#compose-files-and-host-access).
+
+- **`502 Bad Gateway` or a connection error at the address**: the container isn't ready yet, or the route has the wrong container or port. Check both in **Sites**.
+
+- **The certificate doesn't arrive**: the DNS must already point at the server (**Check DNS** in the site) and ports 80 and 443 must be reachable from the Internet.

@@ -1,0 +1,79 @@
+---
+title: Practical guides
+description: Step-by-step guides to put WordPress, PrestaShop, Sylius, Drupal, Vikunja, Symfony, Laravel and Docmost online on your server, with HTTPS.
+---
+
+import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Each guide takes one application from nothing to a working site at your own address, with HTTPS. You don't need to be a system administrator: if you can copy a file's content, type a few commands and click through a form, you can do it.
+
+<CardGrid>
+	<LinkCard title="WordPress" description="Blog or website, with MariaDB." href="/guides/wordpress/" />
+	<LinkCard title="PrestaShop" description="Online store, self-installing." href="/guides/prestashop/" />
+	<LinkCard title="Sylius" description="Headless-ready e-commerce on Symfony." href="/guides/sylius/" />
+	<LinkCard title="Drupal" description="Content management, with PostgreSQL." href="/guides/drupal/" />
+	<LinkCard title="Vikunja" description="To-dos and projects: the simplest one." href="/guides/vikunja/" />
+	<LinkCard title="Symfony" description="Your PHP application, built from Git." href="/guides/symfony/" />
+	<LinkCard title="Laravel" description="Your PHP application, with migrations." href="/guides/laravel/" />
+	<LinkCard title="Docmost" description="Wiki and team documentation." href="/guides/docmost/" />
+</CardGrid>
+
+## How it works, in one minute
+
+Every guide does the same thing, so once you've done one, the others are the same moves with different values.
+
+1. **A repository holds a `compose.yaml`.** It's a small text file that lists the containers the application needs (the app, its database…). For Symfony, Laravel and Sylius it's joined by a `Dockerfile` that builds your code into an image.
+2. **Sirio runs it.** A *pipeline* takes the repository and runs `docker compose up` on your server.
+3. **A route makes it public.** You tell Sirio *"`blog.example.com` goes to the container `wordpress`, port 80"* and Sirio configures the proxy and gets the HTTPS certificate.
+
+You never open a port on the server by hand, and you never write a proxy configuration.
+
+## Before you start
+
+You need four things, once.
+
+1. **Sirio installed on your server**, see [Installation](/docs/installation/).
+2. **The proxy turned on and installed.** Follow steps 1 to 4 of [Publishing your first site](/docs/domains/#publishing-your-first-site): it's done once for all your sites.
+3. **A domain, or a subdomain, pointing at the server.** At your DNS provider, create an `A` record (for example `blog` for `blog.example.com`) with the server's public IP address. One subdomain per application.
+4. **A Git repository for each application**, on GitHub, GitLab, Gitea or any Git server, and `git` on your computer. A free **private** repository is the right choice: the files contain passwords.
+
+<Aside type="caution" title="Keep the repository private">
+The guides write passwords and secrets straight into `compose.yaml`, to keep things simple. That's fine in a private repository that only you can read, and **not** in a public one.
+</Aside>
+
+## The rules of a compose file on Sirio
+
+The files in these guides follow a few rules, which are also worth keeping when you write your own:
+
+- **No `ports:`.** The container is reached through a route, inside the server's network. Publishing a port on the server isn't needed, and Sirio's proxy already owns ports 80 and 443.
+- **A `container_name`.** It gives the container a fixed, readable name: it's what you choose when you create the route.
+- **Named volumes for data.** Everything the application saves (uploads, databases) lives in a *named volume* (`wordpress_data:`), not in a folder of the repository: a deploy rebuilds the repository's folder, and a volume survives it. The reasons are in [Pipelines](/docs/pipeline/#data-the-application-writes).
+- **Nothing outside the repository.** A pipeline can't mount folders of the server or ask for privileged containers unless an administrator grants the pipeline *host access*. These guides never need it.
+
+## Generating passwords
+
+Wherever a guide says `CHANGE-ME`, write a different password of yours. On your computer, in a terminal:
+
+```bash
+openssl rand -hex 24
+```
+
+prints a long random one. Use only letters and numbers when a password goes inside an address (`postgresql://user:PASSWORD@db/…`).
+
+## What a guide asks you to do in Sirio
+
+The steps in Sirio are always the same five. Each guide lists them with the exact values, but this is the whole picture:
+
+| Step | Where | What |
+|---|---|---|
+| Site and domain | **Sites** | New site, then **New domain**, TLS on *Automatic HTTPS*. **Check DNS** must show your server's IP. |
+| Repository | **Repositories** | **Connect repository** with the Git URL (and a token or key if it's private). |
+| Pipeline | **Pipelines** | **New pipeline**: choose the repository and the site, press **Detect from compose** in the *Deploy* phase, **Save pipeline**. |
+| Run | **Pipelines** | **Run**. Watch the log until it turns green. |
+| Route | **Sites** → the domain → **Route** | Choose the container and its internal port. |
+
+## After the first deploy
+
+- **Updating** an application is always "change the file or the code, push, **Run** again". Each guide says what to change.
+- **Backups**: create a backup plan for the site in **Backups** that includes the volumes the guide lists. See [Backups](/docs/backups/).
+- **Automatic deploys**: set the pipeline's **When to run** to *on every push* and add the webhook, see [Pipelines](/docs/pipeline/#automatic-start-from-a-webhook).

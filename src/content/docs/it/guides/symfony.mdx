@@ -1,0 +1,171 @@
+---
+title: Symfony
+description: "Rilascia un'applicazione Symfony con HTTPS da un repository Git, passo per passo."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Un'applicazione [Symfony](https://symfony.com), costruita in un container con un `Dockerfile` e servita da [FrankenPHP](https://frankenphp.dev). Ogni push può diventare una nuova versione online. Circa 25 minuti. Sul tuo computer servono PHP 8.2+ e [Composer](https://getcomposer.org).
+
+Qui sotto si dà per scontato che tu abbia già fatto una volta [Prima di iniziare](/it/guides/#prima-di-iniziare): Sirio installato, il proxy attivo e un dominio che punta al tuo server.
+
+## 1. Prepara i file
+
+Crea un repository vuoto su GitHub (con GitLab o Gitea è uguale; meglio **privato**, perché i file conterranno delle password). Poi, sul tuo computer:
+
+```bash
+git clone git@github.com:TU/symfony-sirio.git
+cd symfony-sirio
+```
+
+Parti dal tuo progetto. Se non ne hai ancora uno, creane uno minimo nella cartella del repository:
+
+```bash
+composer create-project symfony/skeleton . --no-interaction
+```
+
+(Se la cartella non è vuota, crealo in una cartella temporanea e copia tutto nel repository, escluso `.git`.)
+
+Per avere qualcosa da vedere, aggiungi una pagina, `src/Controller/HomeController.php`:
+
+```php title="src/Controller/HomeController.php"
+<?php
+
+namespace App\Controller;
+
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+class HomeController
+{
+    #[Route('/', name: 'home')]
+    public function index(): Response
+    {
+        return new Response('<h1>Ciao da Symfony!</h1>');
+    }
+}
+```
+
+Ora aggiungi tre file al progetto. Prima il `Dockerfile`, che dice come costruire l'immagine:
+
+```dockerfile title="Dockerfile"
+FROM dunglas/frankenphp:1-php8.4
+RUN install-php-extensions intl opcache zip apcu
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+ENV SERVER_NAME=:80 APP_ENV=prod COMPOSER_ALLOW_SUPERUSER=1
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+```
+
+Poi `.dockerignore`, perché l'immagine non si porti dietro ciò che non serve:
+
+```text title=".dockerignore"
+.git
+vendor
+var
+.env.local
+```
+
+E `compose.yaml`. Genera `APP_SECRET` con `openssl rand -hex 16`:
+
+```yaml title="compose.yaml"
+services:
+  app:
+    build: .
+    container_name: symfony
+    restart: unless-stopped
+    environment:
+      APP_ENV: prod
+      APP_SECRET: CAMBIA-MI
+```
+
+Infine, di' a Symfony che sta dietro il proxy di Sirio, così vede l'indirizzo vero dei visitatori e sa che usano HTTPS. In `config/packages/framework.yaml` aggiungi le due righe evidenziate:
+
+```yaml title="config/packages/framework.yaml" ins={3-4}
+framework:
+    secret: '%env(APP_SECRET)%'
+    trusted_proxies: 'private_ranges'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port']
+```
+
+
+Quando i file sono pronti, mandali al repository:
+
+```bash
+git add .
+git commit -m "Prima versione"
+git push
+```
+
+## 2. Crea il sito e il dominio in Sirio
+
+In Sirio:
+
+1. Apri **Siti** → **Nuovo sito**, scrivi il nome `symfony` e premi **Crea sito**.
+2. Nel sito premi **Nuovo dominio**, scrivi `app.esempio.it` (usa il tuo dominio) e lascia **TLS** su *HTTPS automatico (Let's Encrypt)*. Premi **Aggiungi**.
+3. Premi **Verifica DNS**: deve mostrare l'IP pubblico del tuo server. Se non è così, correggi prima il record `A` dal tuo provider DNS e riprova fra qualche minuto.
+
+## 3. Collega il repository
+
+In Sirio:
+
+1. Apri **Repository** → **Collega repository**.
+2. **URL Git**: l'indirizzo del repository che hai appena creato. **Branch di default**: `main`.
+3. Repository pubblico: scegli *repository pubblico*. Repository privato: scegli *token HTTPS* o *chiave SSH di deploy* ([come fare](/it/docs/pipeline/#collegare-un-repository)).
+4. Premi **Collega**.
+
+## 4. Crea la pipeline
+
+In Sirio:
+
+1. Apri **Pipeline** → **Nuova pipeline**.
+2. **Nome**: `symfony`. **Repository**: quello appena collegato. **Sito**: `symfony`. **Quando eseguire**: *solo su richiesta* (potrai passare a *a ogni push* più avanti).
+3. Nella fase **Rilascio** premi **Rileva da compose**. Sirio trova `compose.yaml` e aggiunge uno step *Docker Compose* con il comando `up`.
+   Poi, in quello step, scrivi `--build` in **Argomenti aggiuntivi**: fa ricostruire l'immagine dal tuo codice a ogni rilascio.
+4. Premi **Salva pipeline**.
+
+## 5. Esegui la pipeline
+
+1. In **Pipeline** premi **Esegui** accanto a `symfony`, lascia il branch predefinito e conferma.
+2. Guarda il log. La prima volta costruisce l'immagine (estensioni PHP, Composer): da 3 a 6 minuti.
+3. Quando l'esecuzione diventa verde, apri **Container**: `symfony` c'è, ed è in esecuzione.
+
+## 6. Collega il dominio al container
+
+1. Torna in **Siti** → `symfony`.
+2. Sulla riga di `app.esempio.it` premi **Rotta**.
+3. **Path**: `/`. **Container**: `symfony`. **Porta**: `80`.
+4. Premi **Aggiungi**.
+
+Fatto: Sirio configura il proxy e il certificato HTTPS arriva alla prima visita a `https://app.esempio.it`. Non pubblicare nessuna porta nel file compose: la rotta raggiunge il container dentro la rete del server.
+
+## 7. Finisci nel browser
+
+Apri `https://app.esempio.it`: la tua pagina c'è.
+
+D'ora in poi la routine è: cambi il codice, `git push`, **Esegui** la pipeline. Per renderla automatica imposta **Quando eseguire** su *a ogni push* e aggiungi il webhook come spiegato in [Pipeline](/it/docs/pipeline/#avvio-automatico-da-webhook).
+
+**Un database?** Aggiungi allo stesso `compose.yaml` un servizio `db` come quello della guida [Drupal](/it/guides/drupal/) o [Laravel](/it/guides/laravel/), metti il suo indirizzo nella variabile `DATABASE_URL` del servizio `app` e installa il driver (`pdo_pgsql` o `pdo_mysql`) nella riga `install-php-extensions` del `Dockerfile`.
+
+## Aggiornare
+
+Fai `git push` delle modifiche ed esegui la pipeline: Sirio ricostruisce l'immagine dal nuovo codice e sostituisce il container.
+Poi, in **Pipeline**, premi di nuovo **Esegui**. I dati che stanno nei volumi o nel database resta dov'è: sta nei volumi nominati, che un rilascio non tocca.
+
+## Backup
+
+Il codice è in Git; i dati sono nel database e negli eventuali volumi che aggiungi. Includili in un piano di backup del sito in **Backup**: vedi [Backup](/it/docs/backups/).
+
+## Se qualcosa non funziona
+
+- **L'esecuzione fallisce nella parte "composer install"**: apri il log, l'errore è lì. Di solito è un'estensione PHP che serve al tuo progetto: aggiungila a `install-php-extensions` nel `Dockerfile`.
+- **La pagina è un 404 "No route found"**: il file `HomeController` manca dal repository (hai fatto `git add`?), o è in un altro namespace.
+- **Errore 500 senza dettagli**: è la modalità produzione, di proposito. Apri il log del container in **Container**: l'errore è lì.
+- **I link iniziano con `http://`**: mancano le due righe `trusted_…` di `framework.yaml`.
+
+- **Uno step fallisce o l'esecuzione resta rossa**: apri il log dell'esecuzione in **Esecuzioni**. Un file che Sirio rifiuta (per esempio una riga `ports:` che non può permettere, o una cartella fuori dal repository) è nominato lì, con la chiave. Altro in [File Compose e accesso all'host](/it/docs/security/#file-compose-e-accesso-allhost).
+
+- **`502 Bad Gateway` o un errore di connessione all'indirizzo**: il container non è ancora pronto, oppure la rotta ha il container o la porta sbagliati. Controlla entrambi in **Siti**.
+
+- **Il certificato non arriva**: il DNS deve già puntare al server (**Verifica DNS** nel sito) e le porte 80 e 443 devono essere raggiungibili da Internet.

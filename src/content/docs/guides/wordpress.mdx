@@ -1,0 +1,147 @@
+---
+title: WordPress
+description: "Put a WordPress site online with HTTPS, step by step: one compose file, one pipeline, one route."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[WordPress](https://wordpress.org) with a MariaDB database, running as two containers. About 15 minutes.
+
+Everything below assumes you've done [Before you start](/guides/#before-you-start) once: Sirio installed, the proxy running, and a domain pointing at your server.
+
+## 1. Prepare the files
+
+Create an empty repository on GitHub (GitLab or Gitea work the same; a **private** one is fine and recommended, because the files will contain passwords). Then, on your computer:
+
+```bash
+git clone git@github.com:YOU/wordpress-sirio.git
+cd wordpress-sirio
+```
+
+Create one file, `compose.yaml`, with this content:
+
+```yaml title="compose.yaml"
+services:
+  wordpress:
+    image: wordpress:6-apache
+    container_name: wordpress
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: CHANGE-ME-1
+      # Behind Sirio's proxy: tells WordPress the connection is HTTPS.
+      WORDPRESS_CONFIG_EXTRA: |
+        if (($$_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') { $$_SERVER['HTTPS'] = 'on'; }
+    volumes:
+      - wordpress_data:/var/www/html
+
+  db:
+    image: mariadb:11
+    container_name: wordpress-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: CHANGE-ME-1
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  wordpress_data:
+  db_data:
+```
+
+Replace every `CHANGE-ME…` with a different password of yours. To get a good one: `openssl rand -hex 24`. Where the same password appears twice, use the same value in both places.
+
+The two `volumes` keep your site (themes, plugins, uploads) and the database safe across updates.
+
+When the files are ready, send them to the repository:
+
+```bash
+git add .
+git commit -m "First version"
+git push
+```
+
+## 2. Create the site and the domain in Sirio
+
+In Sirio:
+
+1. Open **Sites** → **New site**, type the name `wordpress` and press **Create site**.
+2. In the site, press **New domain**, type `blog.example.com` (use your own domain) and leave **TLS** on *Automatic HTTPS (Let's Encrypt)*. Press **Add**.
+3. Press **Check DNS**: it must show the public IP of your server. If it doesn't, fix the `A` record at your DNS provider first and try again in a few minutes.
+
+## 3. Connect the repository
+
+In Sirio:
+
+1. Open **Repositories** → **Connect repository**.
+2. **Git URL**: the address of the repository you just created. **Default branch**: `main`.
+3. Public repository: choose *public repository*. Private repository: choose *HTTPS token* or *SSH deploy key* ([how](/docs/pipeline/#connecting-a-repository)).
+4. Press **Connect**.
+
+## 4. Create the pipeline
+
+In Sirio:
+
+1. Open **Pipelines** → **New pipeline**.
+2. **Name**: `wordpress`. **Repository**: the one you just connected. **Site**: `wordpress`. **When to run**: *on request only* (you can change it to *on every push* later).
+3. In the **Deploy** phase press **Detect from compose**. Sirio finds `compose.yaml` and adds a *Docker Compose* step with the command `up`.
+4. Press **Save pipeline**.
+
+## 5. Run the pipeline
+
+1. In **Pipelines**, press **Run** next to `wordpress`, keep the default branch and confirm.
+2. Watch the log. The first time Docker downloads the images: it can take a couple of minutes.
+3. When the run turns green, open **Containers**: `wordpress` is there, running.
+
+## 6. Point the domain at the container
+
+1. Go back to **Sites** → `wordpress`.
+2. On the `blog.example.com` row press **Route**.
+3. **Path**: `/`. **Container**: `wordpress`. **Port**: `80`.
+4. Press **Add**.
+
+That's all: Sirio configures the proxy and the HTTPS certificate arrives with the first visit to `https://blog.example.com`. Don't publish any port in the compose file: the route reaches the container inside the server's network.
+
+## 7. Finish in the browser
+
+Open `https://blog.example.com`. WordPress shows its installer:
+
+1. Choose the language and press **Continue**.
+2. Site title, a username, a **strong password** and your email. Press **Install WordPress**.
+3. Log in at `https://blog.example.com/wp-admin`.
+
+Do this right away: until the installer is completed, anyone who opens the address can complete it.
+
+## Updating
+
+To update WordPress itself, its plugins and themes use the WordPress dashboard. To update the container images (PHP, security fixes), run the pipeline again: `wordpress:6-apache` follows the 6.x releases.
+Then, in **Pipelines**, press **Run** again. Your site and database stays: it lives in named volumes, which a deploy does not touch.
+
+## Backups
+
+Create a backup plan for the site in **Backups** and include the volumes `wordpress_data`, `db_data`: see [Backups](/docs/backups/). Do it before you start adding real content.
+
+## If something goes wrong
+
+- **"Error establishing a database connection"**: wait a minute and reload, the database is still starting. If it persists, check that `WORDPRESS_DB_PASSWORD` and `MARIADB_PASSWORD` are the same. Note that changing a password in the file *after* the first start doesn't change it inside the existing database.
+- **Redirect loop or "mixed content" warnings**: the `WORDPRESS_CONFIG_EXTRA` lines are missing or mistyped. Keep the double `$$` as written.
+- **502 on the first visit**: the pipeline run hasn't finished yet, or the route points at the wrong port. It must be `80`.
+
+- **A step fails or the run stays red**: open the run's log in **Runs**. A file Sirio refuses (for example a `ports:` line it can't allow, or a folder outside the repository) is named there, with the key. More in [Compose files and host access](/docs/security/#compose-files-and-host-access).
+
+- **`502 Bad Gateway` or a connection error at the address**: the container isn't ready yet, or the route has the wrong container or port. Check both in **Sites**.
+
+- **The certificate doesn't arrive**: the DNS must already point at the server (**Check DNS** in the site) and ports 80 and 443 must be reachable from the Internet.

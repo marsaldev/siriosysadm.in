@@ -1,0 +1,144 @@
+---
+title: Docmost
+description: "Run your own Docmost wiki and documentation space with HTTPS, step by step."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[Docmost](https://docmost.com) is an open source wiki for documentation and team knowledge. It needs three containers: the app, PostgreSQL and Redis. About 15 minutes.
+
+Everything below assumes you've done [Before you start](/guides/#before-you-start) once: Sirio installed, the proxy running, and a domain pointing at your server.
+
+## 1. Prepare the files
+
+Create an empty repository on GitHub (GitLab or Gitea work the same; a **private** one is fine and recommended, because the files will contain passwords). Then, on your computer:
+
+```bash
+git clone git@github.com:YOU/docmost-sirio.git
+cd docmost-sirio
+```
+
+Create one file, `compose.yaml`. Change `APP_URL` to your domain (keep `https://`, no final `/`).
+
+```yaml title="compose.yaml"
+services:
+  docmost:
+    image: docmost/docmost:latest
+    container_name: docmost
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    environment:
+      APP_URL: https://docs.example.com
+      APP_SECRET: CHANGE-ME-1-at-least-32-characters-long
+      DATABASE_URL: postgresql://docmost:CHANGE-ME-2@db:5432/docmost
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - docmost_storage:/app/data/storage
+
+  db:
+    image: postgres:18
+    container_name: docmost-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: docmost
+      POSTGRES_USER: docmost
+      POSTGRES_PASSWORD: CHANGE-ME-2
+    volumes:
+      - db_data:/var/lib/postgresql
+
+  redis:
+    image: redis:8
+    container_name: docmost-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis_data:/data
+
+volumes:
+  docmost_storage:
+  db_data:
+  redis_data:
+```
+
+`APP_SECRET` must be **at least 32 characters**, otherwise Docmost refuses to start: use `openssl rand -hex 32`. The password of the database appears twice (`DATABASE_URL` and `POSTGRES_PASSWORD`): use the same value, made only of letters and numbers (a `@` or `/` in it would break the address).
+
+When the files are ready, send them to the repository:
+
+```bash
+git add .
+git commit -m "First version"
+git push
+```
+
+## 2. Create the site and the domain in Sirio
+
+In Sirio:
+
+1. Open **Sites** → **New site**, type the name `docmost` and press **Create site**.
+2. In the site, press **New domain**, type `docs.example.com` (use your own domain) and leave **TLS** on *Automatic HTTPS (Let's Encrypt)*. Press **Add**.
+3. Press **Check DNS**: it must show the public IP of your server. If it doesn't, fix the `A` record at your DNS provider first and try again in a few minutes.
+
+## 3. Connect the repository
+
+In Sirio:
+
+1. Open **Repositories** → **Connect repository**.
+2. **Git URL**: the address of the repository you just created. **Default branch**: `main`.
+3. Public repository: choose *public repository*. Private repository: choose *HTTPS token* or *SSH deploy key* ([how](/docs/pipeline/#connecting-a-repository)).
+4. Press **Connect**.
+
+## 4. Create the pipeline
+
+In Sirio:
+
+1. Open **Pipelines** → **New pipeline**.
+2. **Name**: `docmost`. **Repository**: the one you just connected. **Site**: `docmost`. **When to run**: *on request only* (you can change it to *on every push* later).
+3. In the **Deploy** phase press **Detect from compose**. Sirio finds `compose.yaml` and adds a *Docker Compose* step with the command `up`.
+4. Press **Save pipeline**.
+
+## 5. Run the pipeline
+
+1. In **Pipelines**, press **Run** next to `docmost`, keep the default branch and confirm.
+2. Watch the log. The first start also creates the database: allow a minute after the run turns green.
+3. When the run turns green, open **Containers**: `docmost` is there, running.
+
+## 6. Point the domain at the container
+
+1. Go back to **Sites** → `docmost`.
+2. On the `docs.example.com` row press **Route**.
+3. **Path**: `/`. **Container**: `docmost`. **Port**: `3000`.
+4. Press **Add**.
+
+That's all: Sirio configures the proxy and the HTTPS certificate arrives with the first visit to `https://docs.example.com`. Don't publish any port in the compose file: the route reaches the container inside the server's network.
+
+## 7. Finish in the browser
+
+Open `https://docs.example.com`. A form creates your workspace:
+
+1. Workspace name, your name, your email and a **strong password**.
+2. Press **Setup workspace**.
+
+You are the administrator. Invite your colleagues from the workspace settings.
+
+## Updating
+
+The file uses `docmost/docmost:latest`, so running the pipeline again fetches the newest version when you ask Docker to pull it: in the pipeline's Compose step put `--pull always` in **Additional arguments**. For a safer routine, write a version number instead of `latest` and change it when you decide to upgrade.
+Then, in **Pipelines**, press **Run** again. Your pages, attachments and users stays: it lives in named volumes, which a deploy does not touch.
+
+## Backups
+
+Create a backup plan for the site in **Backups** and include the volumes `docmost_storage`, `db_data`, `redis_data`: see [Backups](/docs/backups/). Do it before you start adding real content.
+
+## If something goes wrong
+
+- **The container keeps restarting**: open its log in **Containers**. If it complains about `APP_SECRET`, the value is shorter than 32 characters.
+- **The editor says it's offline or doesn't save live**: the editor uses WebSockets, which Sirio's proxy passes through without settings. Check that `APP_URL` is exactly the address in the browser.
+- **You can't reach the database after changing its password**: the password is stored inside the database at the first start. Either change it there, or delete the `db_data` volume (it erases the data) and run again.
+
+- **A step fails or the run stays red**: open the run's log in **Runs**. A file Sirio refuses (for example a `ports:` line it can't allow, or a folder outside the repository) is named there, with the key. More in [Compose files and host access](/docs/security/#compose-files-and-host-access).
+
+- **`502 Bad Gateway` or a connection error at the address**: the container isn't ready yet, or the route has the wrong container or port. Check both in **Sites**.
+
+- **The certificate doesn't arrive**: the DNS must already point at the server (**Check DNS** in the site) and ports 80 and 443 must be reachable from the Internet.

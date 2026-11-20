@@ -11,6 +11,7 @@ documentation, in English and Italian. Built with [Astro Starlight](https://star
 | `src/components/home/` | the home page's copy (`copy.ts`, both locales) and sections | here |
 | `src/content/docs/features.mdx`, `src/content/docs/it/features.mdx`, `src/components/features/` | the features page, its copy (`copy.ts`, both locales) | here |
 | `src/content/docs/changelog.mdx`, `src/content/docs/it/changelog.mdx`, `src/components/changelog/` | the changelog: every Sirio release (`copy.ts`, both locales in each entry), to update with each release | here |
+| `src/content/docs/guides/`, `src/content/docs/it/guides/` | the practical guides (WordPress, PrestaShop, Sylius, Drupal, Vikunja, Symfony, Laravel, Docmost): an overview and one page per application, each in both locales | here |
 | `src/assets/screenshots/`, `src/components/Screenshot.astro` | screenshots of the panel, `<name>-<light\|dark>-<en\|it>.png` at 1440×900 2×: each page shows the one matching the site's theme and locale | here |
 | `src/beta.mjs` | the private-beta contact: the email behind every "Ask to join" link, and the banner on the docs | here |
 | `src/content/docs/docs/`, `src/content/docs/it/docs/` | the documentation | **in the Sirio repository**, `docs/` and `docs/it/` |

@@ -1,0 +1,234 @@
+---
+title: Sylius
+description: "Deploy a Sylius e-commerce store with MySQL and HTTPS from a Git repository, step by step."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[Sylius](https://sylius.com) is an e-commerce framework built on Symfony. Here it's built into a container from your own repository (so you can customize it), with MySQL and [FrankenPHP](https://frankenphp.dev). The longest guide of the series: about 40 minutes, most of them the first build. You need PHP 8.3+ and [Composer](https://getcomposer.org) on your computer.
+
+Everything below assumes you've done [Before you start](/guides/#before-you-start) once: Sirio installed, the proxy running, and a domain pointing at your server.
+
+## 1. Prepare the files
+
+Create an empty repository on GitHub (GitLab or Gitea work the same; a **private** one is fine and recommended, because the files will contain passwords). Then, on your computer:
+
+```bash
+git clone git@github.com:YOU/sylius-sirio.git
+cd sylius-sirio
+```
+
+Create the project inside the repository folder:
+
+```bash
+composer create-project sylius/sylius-standard . --no-interaction
+```
+
+(If the folder is not empty, create it in a temporary folder and copy everything into the repository, `.git` excluded.)
+
+Sylius ships a compose file made for development on your own computer, which Sirio wouldn't run. Delete it, so it doesn't get in the way:
+
+```bash
+rm compose.yml compose.override.dist.yml
+```
+
+Now add three files. First `Dockerfile`, which builds the image in three stages (PHP libraries, CSS and JavaScript, final image):
+
+```dockerfile title="Dockerfile"
+# 1. PHP libraries (needed also to compile the assets)
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --no-scripts --no-autoloader --ignore-platform-reqs --no-interaction
+
+# 2. Compile CSS and JavaScript
+FROM node:22-slim AS assets
+WORKDIR /app
+COPY . .
+COPY --from=vendor /app/vendor vendor
+RUN corepack enable && yarn install && yarn build:prod
+
+# 3. Final image: PHP + web server (FrankenPHP)
+FROM dunglas/frankenphp:1-php8.4
+RUN install-php-extensions intl gd exif pdo_mysql opcache zip bcmath \
+    && echo "memory_limit=512M" > "$PHP_INI_DIR/conf.d/zz-memory.ini"
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+ENV SERVER_NAME=:80 APP_ENV=prod COMPOSER_ALLOW_SUPERUSER=1
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+COPY --from=assets /app/public/build public/build
+RUN php bin/console assets:install public
+COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint
+RUN chmod +x /usr/local/bin/app-entrypoint
+ENTRYPOINT ["app-entrypoint"]
+CMD ["--config", "/etc/frankenphp/Caddyfile", "--adapter", "caddyfile"]
+```
+
+Then `docker/entrypoint.sh` (create the `docker` folder). At every start it creates, only if they don't exist yet, the keys Sylius needs for its API and for encrypting payment data:
+
+```sh title="docker/entrypoint.sh"
+#!/bin/sh
+set -e
+php bin/console lexik:jwt:generate-keypair --skip-if-exists
+[ -f "$SYLIUS_PAYMENT_ENCRYPTION_KEY_PATH" ] || php bin/console sylius:payment:generate-key
+exec docker-php-entrypoint "$@"
+```
+
+And `compose.yaml`. Change `DEFAULT_URI` to your domain. Replace every `CHANGE-ME-1, CHANGE-ME-2, CHANGE-ME-3` with a different password of yours. To get a good one: `openssl rand -hex 24`. Where the same password appears twice, use the same value in both places. `CHANGE-ME-1` must be a long random string; `CHANGE-ME-2` appears in two places and must be letters and numbers only.
+
+```yaml title="compose.yaml"
+services:
+  sylius:
+    build: .
+    container_name: sylius
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      APP_SECRET: CHANGE-ME-1
+      DATABASE_URL: mysql://sylius:CHANGE-ME-2@db:3306/sylius?serverVersion=8.4&charset=utf8mb4
+      DEFAULT_URI: https://shop.example.com
+      JWT_SECRET_KEY: /app/config/jwt/private.pem
+      JWT_PUBLIC_KEY: /app/config/jwt/public.pem
+      JWT_PASSPHRASE: CHANGE-ME-3
+      SYLIUS_PAYMENT_ENCRYPTION_KEY_PATH: /app/config/encryption/prod.key
+    volumes:
+      - sylius_jwt:/app/config/jwt
+      - sylius_encryption:/app/config/encryption
+      - sylius_media:/app/public/media
+
+  db:
+    image: mysql:8.4
+    container_name: sylius-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: sylius
+      MYSQL_USER: sylius
+      MYSQL_PASSWORD: CHANGE-ME-2
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sylius_jwt:
+  sylius_encryption:
+  sylius_media:
+  db_data:
+```
+
+Last, tell Symfony (which Sylius is built on) it sits behind Sirio's proxy, so it knows visitors use HTTPS. At the top of `config/packages/framework.yaml` add the two highlighted lines:
+
+```yaml title="config/packages/framework.yaml" ins={3-4}
+framework:
+    secret: '%env(APP_SECRET)%'
+    trusted_proxies: 'private_ranges'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port']
+    translator: { fallbacks: ["%locale%"] }
+```
+
+
+When the files are ready, send them to the repository:
+
+```bash
+git add .
+git commit -m "First version"
+git push
+```
+
+## 2. Create the site and the domain in Sirio
+
+In Sirio:
+
+1. Open **Sites** → **New site**, type the name `sylius` and press **Create site**.
+2. In the site, press **New domain**, type `shop.example.com` (use your own domain) and leave **TLS** on *Automatic HTTPS (Let's Encrypt)*. Press **Add**.
+3. Press **Check DNS**: it must show the public IP of your server. If it doesn't, fix the `A` record at your DNS provider first and try again in a few minutes.
+
+## 3. Connect the repository
+
+In Sirio:
+
+1. Open **Repositories** → **Connect repository**.
+2. **Git URL**: the address of the repository you just created. **Default branch**: `main`.
+3. Public repository: choose *public repository*. Private repository: choose *HTTPS token* or *SSH deploy key* ([how](/docs/pipeline/#connecting-a-repository)).
+4. Press **Connect**.
+
+## 4. Create the pipeline
+
+In Sirio:
+
+1. Open **Pipelines** → **New pipeline**.
+2. **Name**: `sylius`. **Repository**: the one you just connected. **Site**: `sylius`. **When to run**: *on request only* (you can change it to *on every push* later).
+3. In the **Deploy** phase press **Detect from compose**. Sirio finds `compose.yaml` and adds a *Docker Compose* step with the command `up`.
+   Then, in that step, type `--build` in **Additional arguments**: it makes Docker rebuild the image from your code at every deploy.
+4. Press **Save pipeline**.
+
+## 5. Run the pipeline
+
+1. In **Pipelines**, press **Run** next to `sylius`, keep the default branch and confirm.
+2. Watch the log. The first time it builds the image, including the shop's CSS and JavaScript: **10 to 20 minutes**. Later runs are much faster.
+3. When the run turns green, open **Containers**: `sylius` is there, running.
+
+## 6. Point the domain at the container
+
+1. Go back to **Sites** → `sylius`.
+2. On the `shop.example.com` row press **Route**.
+3. **Path**: `/`. **Container**: `sylius`. **Port**: `80`.
+4. Press **Add**.
+
+That's all: Sirio configures the proxy and the HTTPS certificate arrives with the first visit to `https://shop.example.com`. Don't publish any port in the compose file: the route reaches the container inside the server's network.
+
+## 7. Finish in the browser
+
+The container is running, but the shop's database is still empty. Install it once:
+
+1. In **Containers** open `sylius`, press **Terminal** and type:
+
+   ```bash
+   php bin/console sylius:install -n
+   ```
+
+   It creates the tables, a default channel and an administrator, and takes a minute.
+2. The installer created that administrator with a default password. Change it **right now**, in the same terminal:
+
+   ```bash
+   php bin/console sylius:admin-user:change-password
+   ```
+
+   It asks for the email (`sylius@example.com`) and the new password.
+
+Then:
+
+- The shop is at `https://shop.example.com` (it starts empty and in English).
+- The administration is at `https://shop.example.com/admin`.
+
+From the administration you add products, languages (for example Italian), currencies and payment methods.
+
+## Updating
+
+`git push` your changes and run the pipeline: Sirio rebuilds the image and replaces the container. After a Sylius upgrade run the database migrations from the container's terminal: `php bin/console doctrine:migrations:migrate -n`.
+Then, in **Pipelines**, press **Run** again. The database, the product images and the keys stays: it lives in named volumes, which a deploy does not touch.
+
+## Backups
+
+Create a backup plan for the site in **Backups** and include the volumes `db_data`, `sylius_media`, `sylius_jwt`, `sylius_encryption`: see [Backups](/docs/backups/). Do it before you start adding real content.
+
+## If something goes wrong
+
+- **The run fails while building the CSS and JavaScript**: open the log. Check that you didn't delete `package.json` or `webpack.config.mjs` from the repository.
+- **The build is killed or "out of memory"**: the first build is heavy. A server with less than 2 GB of RAM may need a swap file.
+- **The shop answers "Table … doesn't exist"**: you haven't run `php bin/console sylius:install -n` yet.
+- **Wrong or `http://` links**: `DEFAULT_URI` must be your domain with `https://`, and the two `trusted_…` lines must be in `framework.yaml`.
+
+- **A step fails or the run stays red**: open the run's log in **Runs**. A file Sirio refuses (for example a `ports:` line it can't allow, or a folder outside the repository) is named there, with the key. More in [Compose files and host access](/docs/security/#compose-files-and-host-access).
+
+- **`502 Bad Gateway` or a connection error at the address**: the container isn't ready yet, or the route has the wrong container or port. Check both in **Sites**.
+
+- **The certificate doesn't arrive**: the DNS must already point at the server (**Check DNS** in the site) and ports 80 and 443 must be reachable from the Internet.

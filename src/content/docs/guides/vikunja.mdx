@@ -1,0 +1,126 @@
+---
+title: Vikunja
+description: "Run your own Vikunja to-do and project manager with HTTPS, step by step."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[Vikunja](https://vikunja.io) is a to-do and project manager. It runs as one container with its built-in SQLite database: the simplest guide of the series. About 10 minutes.
+
+Everything below assumes you've done [Before you start](/guides/#before-you-start) once: Sirio installed, the proxy running, and a domain pointing at your server.
+
+## 1. Prepare the files
+
+Create an empty repository on GitHub (GitLab or Gitea work the same; a **private** one is fine and recommended, because the files will contain passwords). Then, on your computer:
+
+```bash
+git clone git@github.com:YOU/vikunja-sirio.git
+cd vikunja-sirio
+```
+
+Create one file, `compose.yaml`. Change the address in `VIKUNJA_SERVICE_PUBLICURL` to your domain (keep `https://` and the final `/`).
+
+```yaml title="compose.yaml"
+services:
+  vikunja:
+    image: vikunja/vikunja:2.8
+    container_name: vikunja
+    restart: unless-stopped
+    # Named volumes belong to root: without this line Vikunja (user 1000) couldn't write to them.
+    user: "0:0"
+    environment:
+      VIKUNJA_SERVICE_PUBLICURL: https://tasks.example.com/
+      VIKUNJA_SERVICE_SECRET: CHANGE-ME-with-a-long-random-string
+      VIKUNJA_DATABASE_TYPE: sqlite
+      VIKUNJA_DATABASE_PATH: /db/vikunja.db
+    volumes:
+      - vikunja_files:/app/vikunja/files
+      - vikunja_db:/db
+
+volumes:
+  vikunja_files:
+  vikunja_db:
+```
+
+Replace `VIKUNJA_SERVICE_SECRET` with a long random string, for example the output of `openssl rand -hex 32`. Don't lose it: it signs the logins.
+
+When the files are ready, send them to the repository:
+
+```bash
+git add .
+git commit -m "First version"
+git push
+```
+
+## 2. Create the site and the domain in Sirio
+
+In Sirio:
+
+1. Open **Sites** → **New site**, type the name `vikunja` and press **Create site**.
+2. In the site, press **New domain**, type `tasks.example.com` (use your own domain) and leave **TLS** on *Automatic HTTPS (Let's Encrypt)*. Press **Add**.
+3. Press **Check DNS**: it must show the public IP of your server. If it doesn't, fix the `A` record at your DNS provider first and try again in a few minutes.
+
+## 3. Connect the repository
+
+In Sirio:
+
+1. Open **Repositories** → **Connect repository**.
+2. **Git URL**: the address of the repository you just created. **Default branch**: `main`.
+3. Public repository: choose *public repository*. Private repository: choose *HTTPS token* or *SSH deploy key* ([how](/docs/pipeline/#connecting-a-repository)).
+4. Press **Connect**.
+
+## 4. Create the pipeline
+
+In Sirio:
+
+1. Open **Pipelines** → **New pipeline**.
+2. **Name**: `vikunja`. **Repository**: the one you just connected. **Site**: `vikunja`. **When to run**: *on request only* (you can change it to *on every push* later).
+3. In the **Deploy** phase press **Detect from compose**. Sirio finds `compose.yaml` and adds a *Docker Compose* step with the command `up`.
+4. Press **Save pipeline**.
+
+## 5. Run the pipeline
+
+1. In **Pipelines**, press **Run** next to `vikunja`, keep the default branch and confirm.
+2. Watch the log. It takes under a minute.
+3. When the run turns green, open **Containers**: `vikunja` is there, running.
+
+## 6. Point the domain at the container
+
+1. Go back to **Sites** → `vikunja`.
+2. On the `tasks.example.com` row press **Route**.
+3. **Path**: `/`. **Container**: `vikunja`. **Port**: `3456`.
+4. Press **Add**.
+
+That's all: Sirio configures the proxy and the HTTPS certificate arrives with the first visit to `https://tasks.example.com`. Don't publish any port in the compose file: the route reaches the container inside the server's network.
+
+## 7. Finish in the browser
+
+Open `https://tasks.example.com`, press **Register** and create your account.
+
+Then close the door behind you: add this line under `environment:` in `compose.yaml`, push, and run the pipeline again.
+
+```yaml
+      VIKUNJA_SERVICE_ENABLEREGISTRATION: "false"
+```
+
+From then on nobody else can sign up. To add people later, set it back to `"true"` for a moment, or create them from the command line of the container.
+
+## Updating
+
+Change the version in `image:` (`vikunja/vikunja:2.8` to a newer tag from [Docker Hub](https://hub.docker.com/r/vikunja/vikunja/tags)) and push. Vikunja upgrades its database by itself at startup.
+Then, in **Pipelines**, press **Run** again. Your tasks and attachments stays: it lives in named volumes, which a deploy does not touch.
+
+## Backups
+
+Create a backup plan for the site in **Backups** and include the volumes `vikunja_db`, `vikunja_files`: see [Backups](/docs/backups/). Do it before you start adding real content.
+
+## If something goes wrong
+
+- **Login or registration fails with a network or "unauthorized" error**: `VIKUNJA_SERVICE_PUBLICURL` is not exactly the address you open in the browser (check `https`, the domain and the final `/`).
+- **The log says it can't open the database**: the line `user: "0:0"` is missing.
+
+- **A step fails or the run stays red**: open the run's log in **Runs**. A file Sirio refuses (for example a `ports:` line it can't allow, or a folder outside the repository) is named there, with the key. More in [Compose files and host access](/docs/security/#compose-files-and-host-access).
+
+- **`502 Bad Gateway` or a connection error at the address**: the container isn't ready yet, or the route has the wrong container or port. Check both in **Sites**.
+
+- **The certificate doesn't arrive**: the DNS must already point at the server (**Check DNS** in the site) and ports 80 and 443 must be reachable from the Internet.

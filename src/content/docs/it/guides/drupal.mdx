@@ -1,0 +1,154 @@
+---
+title: Drupal
+description: "Metti online un sito Drupal con HTTPS, passo per passo: un file compose, una pipeline, una rotta."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[Drupal](https://www.drupal.org) con un database PostgreSQL. Circa 20 minuti.
+
+Qui sotto si dà per scontato che tu abbia già fatto una volta [Prima di iniziare](/it/guides/#prima-di-iniziare): Sirio installato, il proxy attivo e un dominio che punta al tuo server.
+
+## 1. Prepara i file
+
+Crea un repository vuoto su GitHub (con GitLab o Gitea è uguale; meglio **privato**, perché i file conterranno delle password). Poi, sul tuo computer:
+
+```bash
+git clone git@github.com:TU/drupal-sirio.git
+cd drupal-sirio
+```
+
+Crea un solo file, `compose.yaml`:
+
+```yaml title="compose.yaml"
+services:
+  drupal:
+    image: drupal:11-apache
+    container_name: drupal
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - drupal_sites:/var/www/html/sites
+      - drupal_modules:/var/www/html/modules
+      - drupal_themes:/var/www/html/themes
+      - drupal_profiles:/var/www/html/profiles
+
+  db:
+    image: postgres:17
+    container_name: drupal-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: drupal
+      POSTGRES_USER: drupal
+      POSTGRES_PASSWORD: CAMBIA-MI-1
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U drupal -d drupal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  drupal_sites:
+  drupal_modules:
+  drupal_themes:
+  drupal_profiles:
+  db_data:
+```
+
+Sostituisci ogni `CAMBIA-MI…` con una tua password, diversa per ognuna. Per averne una buona: `openssl rand -hex 24`. Dove la stessa password compare due volte, usa lo stesso valore in entrambi i posti.
+
+Drupal tiene le impostazioni e i file caricati in `sites`, e ciò che installi in `modules`, `themes` e `profiles`: per questo ognuna è un volume.
+
+Quando i file sono pronti, mandali al repository:
+
+```bash
+git add .
+git commit -m "Prima versione"
+git push
+```
+
+## 2. Crea il sito e il dominio in Sirio
+
+In Sirio:
+
+1. Apri **Siti** → **Nuovo sito**, scrivi il nome `drupal` e premi **Crea sito**.
+2. Nel sito premi **Nuovo dominio**, scrivi `cms.esempio.it` (usa il tuo dominio) e lascia **TLS** su *HTTPS automatico (Let's Encrypt)*. Premi **Aggiungi**.
+3. Premi **Verifica DNS**: deve mostrare l'IP pubblico del tuo server. Se non è così, correggi prima il record `A` dal tuo provider DNS e riprova fra qualche minuto.
+
+## 3. Collega il repository
+
+In Sirio:
+
+1. Apri **Repository** → **Collega repository**.
+2. **URL Git**: l'indirizzo del repository che hai appena creato. **Branch di default**: `main`.
+3. Repository pubblico: scegli *repository pubblico*. Repository privato: scegli *token HTTPS* o *chiave SSH di deploy* ([come fare](/it/docs/pipeline/#collegare-un-repository)).
+4. Premi **Collega**.
+
+## 4. Crea la pipeline
+
+In Sirio:
+
+1. Apri **Pipeline** → **Nuova pipeline**.
+2. **Nome**: `drupal`. **Repository**: quello appena collegato. **Sito**: `drupal`. **Quando eseguire**: *solo su richiesta* (potrai passare a *a ogni push* più avanti).
+3. Nella fase **Rilascio** premi **Rileva da compose**. Sirio trova `compose.yaml` e aggiunge uno step *Docker Compose* con il comando `up`.
+4. Premi **Salva pipeline**.
+
+## 5. Esegui la pipeline
+
+1. In **Pipeline** premi **Esegui** accanto a `drupal`, lascia il branch predefinito e conferma.
+2. Guarda il log. La prima volta Docker scarica le immagini: può volerci un paio di minuti.
+3. Quando l'esecuzione diventa verde, apri **Container**: `drupal` c'è, ed è in esecuzione.
+
+## 6. Collega il dominio al container
+
+1. Torna in **Siti** → `drupal`.
+2. Sulla riga di `cms.esempio.it` premi **Rotta**.
+3. **Path**: `/`. **Container**: `drupal`. **Porta**: `80`.
+4. Premi **Aggiungi**.
+
+Fatto: Sirio configura il proxy e il certificato HTTPS arriva alla prima visita a `https://cms.esempio.it`. Non pubblicare nessuna porta nel file compose: la rotta raggiunge il container dentro la rete del server.
+
+## 7. Finisci nel browser
+
+Apri `https://cms.esempio.it`. Drupal mostra il suo installatore:
+
+1. Scegli la lingua, poi il profilo **Standard**.
+2. **Database**: scegli *PostgreSQL*. Nome del database `drupal`, utente `drupal`, password quella che hai messo nel file. Apri **Opzioni avanzate** e imposta **Host** su `db`. Premi **Salva e continua**.
+3. Aspetta l'installazione, poi compila il nome del sito, la tua email e un utente amministratore con una **password robusta**.
+
+Ultimo passo, consigliato: di' a Drupal che sta dietro un proxy, così sa che i visitatori usano HTTPS. In **Container** apri `drupal`, premi **Terminale** e incolla (sostituisci `cms\.esempio\.it` con il tuo dominio, tenendo le barre):
+
+```bash
+chmod u+w /var/www/html/sites/default/settings.php
+cat >> /var/www/html/sites/default/settings.php <<'EOF'
+$settings['reverse_proxy'] = TRUE;
+$settings['reverse_proxy_addresses'] = [$_SERVER['REMOTE_ADDR']];
+$settings['trusted_host_patterns'] = ['^cms\.esempio\.it$'];
+EOF
+chmod 444 /var/www/html/sites/default/settings.php
+```
+
+## Aggiornare
+
+Core e moduli di Drupal si aggiornano con Composer, che questa configurazione non usa: per una nuova versione di Drupal cambia il numero in `image:` (`drupal:11-apache`) solo dopo aver letto le note di rilascio, poi fai push e riesegui la pipeline. Prima fai un backup, e guarda `/admin/reports/updates` per vedere cosa è in sospeso.
+Poi, in **Pipeline**, premi di nuovo **Esegui**. Contenuti, impostazioni e file caricati resta dov'è: sta nei volumi nominati, che un rilascio non tocca.
+
+## Backup
+
+Crea un piano di backup del sito in **Backup** e includi i volumi `drupal_sites`, `drupal_modules`, `drupal_themes`, `drupal_profiles`, `db_data`: vedi [Backup](/it/docs/backups/). Fallo prima di cominciare a inserire contenuti veri.
+
+## Se qualcosa non funziona
+
+- **L'installatore dice che non riesce a connettersi al database**: hai lasciato **Host** su `localhost`. Apri *Opzioni avanzate* e scrivi `db`.
+- **"The provided host name is not valid for this server"** dopo l'installazione: la riga `trusted_host_patterns` non corrisponde al tuo dominio. Correggi il dominio in quella riga.
+- **L'installatore chiede un file settings scrivibile**: con questi volumi non dovrebbe succedere; se capita, riesegui la pipeline e ricarica.
+
+- **Uno step fallisce o l'esecuzione resta rossa**: apri il log dell'esecuzione in **Esecuzioni**. Un file che Sirio rifiuta (per esempio una riga `ports:` che non può permettere, o una cartella fuori dal repository) è nominato lì, con la chiave. Altro in [File Compose e accesso all'host](/it/docs/security/#file-compose-e-accesso-allhost).
+
+- **`502 Bad Gateway` o un errore di connessione all'indirizzo**: il container non è ancora pronto, oppure la rotta ha il container o la porta sbagliati. Controlla entrambi in **Siti**.
+
+- **Il certificato non arriva**: il DNS deve già puntare al server (**Verifica DNS** nel sito) e le porte 80 e 443 devono essere raggiungibili da Internet.
