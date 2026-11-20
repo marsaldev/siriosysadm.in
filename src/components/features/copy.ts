@@ -359,7 +359,7 @@ export const features: Record<
 				shot: {
 					name: 'ports',
 					label: 'Host',
-					alt: 'The Ports page: a warning about the panel reachable over plain HTTP, the listening ports with their exposure and owner, and the fail2ban status.',
+					alt: 'The Ports page: warnings about SSH on the default port and the panel reachable over plain HTTP, a note that fail2ban isn’t installed, and the listening ports with their exposure and owner.',
 					caption: 'Listening ports, with the warnings that matter.',
 				},
 				items: [
@@ -1000,7 +1000,7 @@ export const features: Record<
 				shot: {
 					name: 'ports',
 					label: 'Host',
-					alt: 'La pagina Porte: un avviso sul pannello raggiungibile in HTTP in chiaro, le porte in ascolto con esposizione e proprietario, e lo stato di fail2ban.',
+					alt: 'La pagina Porte: gli avvisi su SSH sulla porta predefinita e sul pannello raggiungibile in HTTP in chiaro, una nota su fail2ban non installato, e le porte in ascolto con esposizione e proprietario.',
 					caption: 'Le porte in ascolto, con gli avvisi che contano.',
 				},
 				items: [
