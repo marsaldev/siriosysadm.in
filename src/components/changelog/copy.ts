@@ -64,6 +64,39 @@ const maintainerOnly: Change = {
 
 export const releases: Release[] = [
 	{
+		version: '0.27.0',
+		date: '2026-11-20',
+		changes: [
+			{
+				kind: 'new',
+				text: {
+					en: 'A transfer can load a database into a new one: when you choose where a database goes, the menu also offers a new database in each receiving container of the same engine, created when it’s loaded. Before, only databases the receiving side already had were offered.',
+					it: 'Un trasferimento può caricare un database in uno nuovo: scegliendo dove va un database, il menu propone anche un nuovo database in ogni container che riceve dello stesso motore, creato al caricamento. Prima venivano proposti solo i database che chi riceve aveva già.',
+				},
+				link: 'transfers',
+				anchor: { en: 'what-a-transfer-copies', it: 'cosa-copia-un-trasferimento' },
+				more: { en: 'What a transfer copies', it: 'Cosa copia un trasferimento' },
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'A disk filling up sends one notification, not four: Sirio’s own sandboxing shows the root disk again at /tmp, /var/tmp and its data directory, and each one counted as a separate disk.',
+					it: 'Un disco che si riempie manda una notifica, non quattro: l’isolamento di Sirio stesso mostra il disco principale anche in /tmp, /var/tmp e nella sua cartella dati, e ognuno contava come un disco a parte.',
+				},
+			},
+			{
+				kind: 'fixed',
+				text: {
+					en: 'The Ports page no longer warns that the panel is reachable over plain HTTP when it serves HTTPS with the self-signed certificate, as a default install does.',
+					it: 'La pagina Porte non avvisa più che il pannello è raggiungibile in HTTP in chiaro quando serve HTTPS con il certificato autofirmato, come fa un’installazione predefinita.',
+				},
+				link: 'security',
+				anchor: { en: 'listening-ports', it: 'porte-in-ascolto' },
+				more: { en: 'Listening ports', it: 'Porte in ascolto' },
+			},
+		],
+	},
+	{
 		version: '0.26.0',
 		date: '2026-11-19',
 		title: { en: 'Transfers between panels', it: 'Trasferimenti tra pannelli' },
